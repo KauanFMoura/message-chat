@@ -734,9 +734,6 @@ html {
   fill: #ffce45;
   stroke: #ffce45;
  }
- .chat-area-group span {
-  color: #d1d1d2;
- }
 }
 
 .chat-area-group {
@@ -763,21 +760,4 @@ html {
  }
 }
 
-@media (max-width: 1120px) {
- .detail-area {
-  display: none;
- }
-}
 
-@media (max-width: 780px) {
- .conversation-area {
-  display: none;
- }
- .search-bar {
-  margin-left: 0;
-  flex-grow: 1;
-  input {
-   padding-right: 10px;
-  }
- }
-}
