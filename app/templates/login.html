@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat de Voz - Login e Cadastro</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .form-container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            width: 300px;
+            max-width: 100%;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .message {
+            text-align: center;
+            margin-top: 10px;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container" id="login-form">
+        <h2>Login</h2>
+        <input type="text" id="login-username" placeholder="Username" required>
+        <input type="password" id="login-password" placeholder="Password" required>
+        <button id="login-button">Login</button>
+        <p class="message" id="login-message"></p>
+        <p>Don't have an account? <a href="#" id="show-register">Register</a></p>
+    </div>
+
+    <div class="form-container" id="register-form" style="display:none;">
+        <h2>Register</h2>
+        <input type="text" id="register-username" placeholder="Username" required>
+        <input type="password" id="register-password" placeholder="Password" required>
+        <input type="password" id="register-confirm-password" placeholder="Confirm Password" required>
+        <button id="register-button">Register</button>
+        <p class="message" id="register-message"></p>
+        <p>Already have an account? <a href="#" id="show-login">Login</a></p>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const showRegisterLink = document.getElementById('show-register');
+        const showLoginLink = document.getElementById('show-login');
+
+        // Mostrar formulário de registro ao clicar no link "Register"
+        showRegisterLink.addEventListener('click', function(event) {
+            event.preventDefault();
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'block';
+        });
+
+        // Mostrar formulário de login ao clicar no link "Login"
+        showLoginLink.addEventListener('click', function(event) {
+            event.preventDefault();
+            registerForm.style.display = 'none';
+            loginForm.style.display = 'block';
+        });
+
+        // Evento de envio do formulário de registro
+        document.getElementById('register-button').addEventListener('click', async function(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('register-username').value;
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm-password').value;
+
+            if (password !== confirmPassword) {
+                document.getElementById('register-message').textContent = 'Passwords do not match';
+                document.getElementById('register-message').style.color = 'red';
+                return;
+            }
+
+            const response = await fetch('/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+            });
+
+            const data = await response.json();
+            const registerMessage = document.getElementById('register-message');
+
+            if (data.status === 'success') {
+                registerMessage.textContent = data.message;
+                registerMessage.style.color = 'green';
+                window.location.href = '/chat'
+            } else {
+                registerMessage.textContent = data.message;
+                registerMessage.style.color = 'red';
+            }
+        });
+
+        // Evento de envio do formulário de login
+        document.getElementById('login-button').addEventListener('click', async function(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+            });
+
+            const data = await response.json();
+            const loginMessage = document.getElementById('login-message');
+
+            if (data.status === 'success') {
+                loginMessage.textContent = data.message;
+                loginMessage.style.color = 'green';
+                window.location.href = '/chat';
+            } else {
+                loginMessage.textContent = data.message;
+                loginMessage.style.color = 'red';
+            }
+        });
+    </script>
+</body>
+</html>
