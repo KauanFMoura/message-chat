@@ -115,8 +115,9 @@
             if (data.status === 'success') {
                 registerMessage.textContent = data.message;
                 registerMessage.style.color = 'green';
+
                 // Redirecionar para outra página, por exemplo:
-                // window.location.href = '/chat';
+                window.location.href = '/chat'
             } else {
                 registerMessage.textContent = data.message;
                 registerMessage.style.color = 'red';
@@ -144,8 +145,9 @@
             if (data.status === 'success') {
                 loginMessage.textContent = data.message;
                 loginMessage.style.color = 'green';
+
                 // Redirecionar para outra página, por exemplo:
-                // window.location.href = '/chat';
+                window.location.href = '/chat';
             } else {
                 loginMessage.textContent = data.message;
                 loginMessage.style.color = 'red';
