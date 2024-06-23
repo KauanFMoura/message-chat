@@ -1,21 +1,22 @@
 @media (max-width: 780px) {
-     .conversation-area {
+     #menu-conversas {
+         width: 100%;
+         height: 100%;
+     }
+    #detail-area {
         display: none;
-     }
-    .conversation-area {
-        transform: translateX(0); /* Exibe o menu ao lado direito */
-     }
-     .search-bar {
-          margin-left: 0;
-          flex-grow: 1;
-          input {
-           padding-right: 10px;
-          }
-     }
+    }
+    .search-bar {
+      margin-left: 0;
+      flex-grow: 1;
+      input {
+       padding-right: 10px;
+      }
+    }
 }
 
 @media (max-width: 1120px) {
-     .detail-area {
+     #detail-area {
         display: none;
      }
 }
