@@ -1,10 +1,214 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Chat de Voz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        .chat-container {
+            display: flex;
+            width: 80%;
+            height: 80vh;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-list {
+            width: 25%;
+            border-right: 1px solid #ccc;
+            overflow-y: auto;
+        }
+
+        .user-list h3 {
+            text-align: center;
+            padding: 10px 0;
+            margin: 0;
+            background-color: #4CAF50;
+            color: #fff;
+        }
+
+        .user-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .user-list li {
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+            cursor: pointer;
+        }
+
+        .user-list li:hover {
+            background-color: #f0f0f0;
+        }
+
+        .chat-window {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background-color: #4CAF50;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            font-size: 18px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .chat-messages p {
+            margin: 10px 0;
+        }
+
+        .chat-input {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+            outline: none;
+        }
+
+        .chat-input button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #4CAF50;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .chat-input button:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
 <body>
+    <div class="chat-container">
+        <div class="user-list">
+            <h3>Users</h3>
+            <ul id="users">
+                <!-- Lista de usuários será populada pelo JavaScript -->
+            </ul>
+        </div>
+        <div class="chat-window">
+            <div class="chat-header" id="chat-header">
+                <!-- Nome do usuário selecionado será exibido aqui -->
+            </div>
+            <div class="chat-messages" id="chat-messages">
+                <!-- Mensagens do chat serão exibidas aqui -->
+            </div>
+            <div class="chat-input">
+                <input type="text" id="message-input" placeholder="Type a message...">
+                <button id="send-button">Send</button>
+            </div>
+        </div>
+    </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+    <script>
+        const socket = io();
+
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+        });
+
+        socket.on('user_update', users => {
+            updateUsersList(users);
+        });
+
+        socket.on('room_status', roomStatus => {
+            updateChatHeader(roomStatus.room);
+            updateUsersList(roomStatus.users);
+        });
+
+        socket.on('private_message', data => {
+            appendMessage(data.sender, data.message);
+        });
+
+        function updateUsersList(users) {
+            const usersList = document.getElementById('users');
+            usersList.innerHTML = '';
+            users.forEach(user => {
+                const li = document.createElement('li');
+                li.textContent = user;
+                li.addEventListener('click', () => selectUser(user));
+                usersList.appendChild(li);
+            });
+        }
+
+        function updateChatHeader(user) {
+            const chatHeader = document.getElementById('chat-header');
+            chatHeader.textContent = `Chat with ${user}`;
+        }
+
+        let selectedUser = null;
+
+        function selectUser(user) {
+            selectedUser = user;
+            updateChatHeader(user);
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value.trim();
+            messageInput.value = '';
+
+            if (!selectedUser) {
+                console.error('No user selected');
+                return;
+            }
+
+            socket.emit('message_private', {
+                sender: 'current_user',  // Substitua 'current_user' pelo nome de usuário real do remetente
+                receiver: selectedUser,
+                message: message
+            });
+
+            appendMessage('Me', message);  // Exibe a mensagem na própria janela de chat
+        }
+
+        function appendMessage(sender, message) {
+            const chatMessages = document.getElementById('chat-messages');
+            const p = document.createElement('p');
+            p.textContent = `${sender}: ${message}`;
+            chatMessages.appendChild(p);
+            chatMessages.scrollTop = chatMessages.scrollHeight;  // Rola para baixo para exibir a última mensagem
+        }
+
+        document.getElementById('send-button').addEventListener('click', sendMessage);
+        document.getElementById('message-input').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+    </script>
 </body>
 </html>
