@@ -73,22 +73,19 @@
         const showRegisterLink = document.getElementById('show-register');
         const showLoginLink = document.getElementById('show-login');
 
-        // Mostrar formulário de registro ao clicar no link "Register"
-        showRegisterLink.addEventListener('click', function(event) {
+        showRegisterLink.addEventListener('click', function (event) {
             event.preventDefault();
             loginForm.style.display = 'none';
             registerForm.style.display = 'block';
         });
 
-        // Mostrar formulário de login ao clicar no link "Login"
-        showLoginLink.addEventListener('click', function(event) {
+        showLoginLink.addEventListener('click', function (event) {
             event.preventDefault();
             registerForm.style.display = 'none';
             loginForm.style.display = 'block';
         });
 
-        // Evento de envio do formulário de registro
-        document.getElementById('register-button').addEventListener('click', async function(event) {
+        document.getElementById('register-button').addEventListener('click', async function (event) {
             event.preventDefault();
 
             const username = document.getElementById('register-username').value;
@@ -106,7 +103,7 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({username, password}),
             });
 
             const data = await response.json();
@@ -116,7 +113,10 @@
                 registerMessage.textContent = data.message;
                 registerMessage.style.color = 'green';
 
-                // Redirecionar para outra página, por exemplo:
+                // Salva o nome de usuário no localStorage
+                localStorage.setItem('username', username);
+
+                // Redirecionar para a página de chat
                 window.location.href = '/chat';
             } else {
                 registerMessage.textContent = data.message;
@@ -124,8 +124,7 @@
             }
         });
 
-        // Evento de envio do formulário de login
-        document.getElementById('login-button').addEventListener('click', async function(event) {
+        document.getElementById('login-button').addEventListener('click', async function (event) {
             event.preventDefault();
 
             const username = document.getElementById('login-username').value;
@@ -136,7 +135,7 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ username, password }),
+                body: JSON.stringify({username, password}),
             });
 
             const data = await response.json();
@@ -146,7 +145,10 @@
                 loginMessage.textContent = data.message;
                 loginMessage.style.color = 'green';
 
-                // Redirecionar para outra página, por exemplo:
+                // Salva o nome de usuário no localStorage
+                localStorage.setItem('username', username);
+
+                // Redirecionar para a página de chat
                 window.location.href = '/chat';
             } else {
                 loginMessage.textContent = data.message;
