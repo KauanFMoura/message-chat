@@ -1,10 +1,7 @@
 from flask import render_template, request, jsonify, session, redirect, url_for, send_from_directory
 from flask_socketio import emit, join_room, leave_room
-from app import app, socketio
+from app import app, socketio, services
 
-
-# Simula um banco de dados de usuários
-users = {'a': 'a', 'b': 'b', 'c': 'c'}
 
 # Dicionário para manter o controle das salas (rooms) de mensagens privadas
 private_rooms = {}
@@ -34,7 +31,9 @@ def login():
         data = request.get_json()
         username = data['username']
         password = data['password']
-        if username in users and users[username] == password:
+
+        user = services.get_user_by_username(username)
+        if user and user.usu_password == password:
             session['username'] = username
             connected_users.add(username)
             return jsonify({'status': 'success', 'message': 'Login successful'})
@@ -51,12 +50,17 @@ def register():
         data = request.get_json()
         username = data['username']
         password = data['password']
-        if username in users:
+        display_name = data['displayName']
+
+        user = services.get_user_by_username(username)
+        if user:
             return jsonify({'status': 'error', 'message': 'Username already exists'}), 409
-        users[username] = password
+
         # Adiciona usuário à lista de conectados
         connected_users.add(username)
         session['username'] = username
+
+        services.create_user(username, password, display_name, None, 'Hey there! I am using WhatsUT.')
         return jsonify({'status': 'success', 'message': 'Registration successful'})
     except Exception as e:
         print(f"Erro no registro: {e}")
