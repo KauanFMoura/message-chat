@@ -31,10 +31,6 @@ def get_user_by_id(usu_id):
     return User.query.filter_by(usu_id=usu_id).first()
 
 
-def get_user_by_username(usu_username):
-    return User.query.filter_by(usu_username=usu_username).first()
-
-
 def create_chat_group(gp_name, gp_creator, gp_description, gp_image_uuid):
     group = Group(gp_name=gp_name, gp_creator=gp_creator, gp_description=gp_description, gp_image_uuid=gp_image_uuid)
     db.session.add(group)
