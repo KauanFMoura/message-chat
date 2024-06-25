@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Chat de Voz - Login e Cadastro</title>
+    <title>Chat UTFPR - Login e Cadastro</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -117,7 +117,7 @@
                 localStorage.setItem('username', username);
 
                 // Redirecionar para a página de chat
-                window.location.href = '/chat';
+                window.location.href = '/whats';
             } else {
                 registerMessage.textContent = data.message;
                 registerMessage.style.color = 'red';
@@ -149,7 +149,7 @@
                 localStorage.setItem('username', username);
 
                 // Redirecionar para a página de chat
-                window.location.href = '/chat';
+                window.location.href = '/whats';
             } else {
                 loginMessage.textContent = data.message;
                 loginMessage.style.color = 'red';
