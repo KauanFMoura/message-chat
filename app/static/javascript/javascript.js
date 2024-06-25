@@ -155,6 +155,18 @@ function concludeSelection() {
     toggleSelectionMode(); // Sair do modo de seleção após concluir
 }
 
+function toogleGroupEntrada() {
+    var groupEntrada = document.getElementById('detail-pedidos-group');
+    var detailGroup = document.getElementById('detail-group');
+    if (groupEntrada.style.display === 'block') {
+        groupEntrada.style.display = 'none';
+        detailGroup.style.display = 'block';
+    } else {
+        groupEntrada.style.display = 'block';
+        detailGroup.style.display = 'none';
+    }
+}
+
 // Função para adicionar uma nova pessoa na área de conversas
 function updateConversationMenu(users, currentUser, socket) {
     const menuConversas = document.getElementById('conversas');
