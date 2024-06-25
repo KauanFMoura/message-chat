@@ -158,7 +158,11 @@ function concludeSelection() {
 // Função para adicionar uma nova pessoa na área de conversas
 function updateConversationMenu(users, currentUser, socket) {
     const menuConversas = document.getElementById('menu-conversas');
-    menuConversas.innerHTML = '';
+    const conversas = menuConversas.getElementsByClassName('msg');
+    // Converte a HTMLCollection para um array para permitir o uso do método forEach
+    Array.from(conversas).forEach((conversa) => {
+        conversa.remove();
+    });
 
     users.forEach(user => {
         if (user !== currentUser) {

@@ -36,8 +36,8 @@ class Group(db.Model):
 class GroupHasUser(db.Model):
     __tablename__ = 'group_has_user'
 
-    ghu_group_id = db.Column(db.Integer, db.ForeignKey('group.gp_id'), nullable=False)
-    ghu_user_id = db.Column(db.Integer, db.ForeignKey('user.usu_id'), nullable=False)
+    ghu_group_id = db.Column(db.Integer, db.ForeignKey('group.gp_id'), nullable=False, primary_key=True)
+    ghu_user_id = db.Column(db.Integer, db.ForeignKey('user.usu_id'), nullable=False, primary_key=True)
     ghu_is_admin = db.Column(db.Boolean, nullable=False)
     ghu_entry_date = db.Column(db.DateTime, nullable=False)
 
