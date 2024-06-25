@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_from_directory
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_cors import CORS
 
@@ -16,9 +16,17 @@ private_rooms = {}
 # Lista de usuários conectados
 connected_users = set()
 
+
 @app.route('/')
 def index():
     return render_template('login.html')
+
+@app.route('/app/static/css/<path:filename>')
+def static_files(filename):
+    return send_from_directory('static/css', filename)
+@app.route('/app/static/javascript/<path:filename>')
+def static_files_js(filename):
+    return send_from_directory('static/javascript', filename)
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -35,6 +43,7 @@ def login():
     except Exception as e:
         print(f"Erro no login: {e}")
         return jsonify({'status': 'error', 'message': 'An error occurred'}), 500
+
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -53,13 +62,15 @@ def register():
         print(f"Erro no registro: {e}")
         return jsonify({'status': 'error', 'message': 'An error occurred'}), 500
 
-@app.route('/chat')
+
+@app.route('/whats')
 def chat():
     if 'username' not in session:
         return redirect(url_for('index'))
     username = session['username']
     print(f'Usuários conectados: {list(connected_users)}')
-    return render_template('chat.html', users=list(connected_users), username=username)
+    return render_template('whats.html', users=list(connected_users), username=username)
+
 
 @socketio.on('connect')
 def handle_connect():
@@ -67,6 +78,7 @@ def handle_connect():
     if username:
         print(f'{username} connected')
         emit('user_update', list(connected_users), broadcast=True)
+
 
 @socketio.on('disconnect')
 def handle_disconnect():
@@ -76,6 +88,7 @@ def handle_disconnect():
         print(f'{username} disconnected')
         emit('user_update', list(connected_users), broadcast=True)
         emit('disconnect', username, broadcast=False)  # Emitir evento para o cliente que se desconectou
+
 
 @socketio.on('user_back_online')
 def handle_user_back_online():
@@ -89,10 +102,17 @@ def handle_user_back_online():
 
         print('Unauthorized access')  # Lida com o caso em que o usuário não está autenticado corretamente
 
+
 @socketio.on('join_room')
 def on_join(data):
     username = data['username']
     room = data['room']
+
+    if room not in private_rooms:
+        # Verifica se a sala invertida já existe
+        reversed_room = '-'.join(reversed(room.split('-')))
+        if reversed_room in private_rooms:
+            room = reversed_room
 
     if room not in private_rooms:
         private_rooms[room] = set()
@@ -101,7 +121,8 @@ def on_join(data):
     private_rooms[room].add(username)
 
     print(f'{username} joined room {room}')
-    emit('room_status', {'room': room, 'users': list(private_rooms[room])}, room=room, broadcast=True)
+    emit('room_status', {'room': room, 'users': list(private_rooms[room])}, broadcast=True)
+
 
 @socketio.on('leave_room')
 def on_leave(data):
@@ -113,7 +134,8 @@ def on_leave(data):
         private_rooms[room].remove(username)
 
     print(f'{username} left room {room}')
-    emit('room_status', {'room': room, 'users': list(private_rooms[room])}, room=room, broadcast=True)
+    emit('room_status', {'room': room, 'users': list(private_rooms[room])}, broadcast=True)
+
 
 @socketio.on('message_private')
 def handle_message(data):
@@ -121,9 +143,16 @@ def handle_message(data):
     receiver = data['receiver']
     message = data['message']
 
-    room = f"{sender}-{receiver}"
+    room1 = f"{sender}-{receiver}"
+    room2 = f"{receiver}-{sender}"
 
-    if room not in private_rooms:
+    if room1 in private_rooms:
+        room = room1
+    elif room2 in private_rooms:
+        room = room2
+    else:
+        # Se a sala não existe, cria uma nova
+        room = room1
         private_rooms[room] = set()
 
     private_rooms[room].add(sender)
@@ -134,6 +163,7 @@ def handle_message(data):
     socketio.emit('private_message', {'sender': sender, 'message': message}, room=room)
 
     print(f'{sender} sent a private message to {receiver}')
+
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=True)
