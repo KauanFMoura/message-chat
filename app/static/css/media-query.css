@@ -1,17 +1,23 @@
 @media (max-width: 780px) {
-     #menu-conversas {
-         width: 100%;
-         height: 100%;
-     }
+    #menu-conversas {
+        width: 100%;
+        height: 100%;
+    }
+    #menu-contact {
+        width: 100%;
+        height: 100%;
+    }
     #detail-area {
         display: none;
+        width: 100%;
+        height: 100%;
     }
     .search-bar {
-      margin-left: 0;
-      flex-grow: 1;
-      input {
-       padding-right: 10px;
-      }
+        margin-left: 0;
+        flex-grow: 1;
+        input {
+            padding-right: 10px;
+        }
     }
 }
 
