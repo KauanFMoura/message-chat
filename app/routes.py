@@ -1,11 +1,7 @@
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
-from flask_socketio import SocketIO, emit, join_room, leave_room
-from flask_cors import CORS
+from flask import render_template, request, jsonify, session, redirect, url_for
+from flask_socketio import emit, join_room, leave_room
+from app import app, socketio
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, cors_allowed_origins='*')
-CORS(app)
 
 # Simula um banco de dados de usuários
 users = {'a': 'a', 'b': 'b', 'c': 'c'}
@@ -61,12 +57,14 @@ def chat():
     print(f'Usuários conectados: {list(connected_users)}')
     return render_template('chat.html', users=list(connected_users), username=username)
 
+
 @socketio.on('connect')
 def handle_connect():
     username = session.get('username')
     if username:
         print(f'{username} connected')
         emit('user_update', list(connected_users), broadcast=True)
+
 
 @socketio.on('disconnect')
 def handle_disconnect():
@@ -76,6 +74,7 @@ def handle_disconnect():
         print(f'{username} disconnected')
         emit('user_update', list(connected_users), broadcast=True)
         emit('disconnect', username, broadcast=False)  # Emitir evento para o cliente que se desconectou
+
 
 @socketio.on('user_back_online')
 def handle_user_back_online():
@@ -88,6 +87,7 @@ def handle_user_back_online():
     else:
 
         print('Unauthorized access')  # Lida com o caso em que o usuário não está autenticado corretamente
+
 
 @socketio.on('join_room')
 def on_join(data):
@@ -102,6 +102,7 @@ def on_join(data):
 
     print(f'{username} joined room {room}')
     emit('room_status', {'room': room, 'users': list(private_rooms[room])}, room=room, broadcast=True)
+
 
 @socketio.on('leave_room')
 def on_leave(data):
