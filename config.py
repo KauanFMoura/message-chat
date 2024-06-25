@@ -3,5 +3,5 @@ class Config:
     SECRET_KEY = 'secret!'
 
     # Configuração do banco de dados
-    SQLALCHEMY_DATABASE_URI = 'mysql://admin-whatsut:sd-utfpr-2024@localhost/whatsut'
+    SQLALCHEMY_DATABASE_URI = 'mysql://admin-whatsut:sd-utfpr-2024@34.151.228.104/whatsut'
 
