@@ -41,9 +41,15 @@
                             d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
                     </svg>
                 </div>
-                <img class="user-profile"
-                    src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3364143/download+%281%29.png" alt=""
-                    class="account-profile" alt="">
+                <div class="user-profile-container">
+                    <img class="user-profile"
+                         src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3364143/download+%281%29.png"
+                         alt="User Profile">
+
+                    <ul class="menu-logout">
+                        <li><a href="/logout">Logout</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
         <div class="wrapper">
@@ -51,7 +57,31 @@
                 <div class="search-bar">
                     <input type="text" placeholder="Search..." />
                 </div>
+                <div class="buttons-conversa">
+                    <div id="button-people" class="button-conversa-x">
+                        <div class="div-add-group group">
+                            <span class="material-symbols-outlined">
+                                person
+                            </span>
+                        </div>
+                        <div class="button-cancel-detail">
+                            <div class="button-cancel-username">Pessoas</div>
+                        </div>
+                    </div>
+                    <div id="button-groups" class="button-conversa-x">
+                        <div class="div-add-group group">
+                            <span class="material-symbols-outlined">
+                                group
+                            </span>
+                        </div>
+                        <div class="button-cancel-detail">
+                            <div class="button-cancel-username">Grupos</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="conversas">
 
+                </div>
                 <div class="div-add">
                     <button class="add" onclick="toggleMenuContatos()"></button>
                 </div>
@@ -119,11 +149,9 @@
                             d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
                     </svg>
                     <input type="text" placeholder="Type something here..." />
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather feather-smile">
-                        <circle cx="12" cy="12" r="10" />
-                        <path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01" />
-                    </svg>
+                    <span id="send-message" class="material-symbols-outlined">
+                        send
+                    </span>
                 </div>
             </div>
             <div id="detail-area">

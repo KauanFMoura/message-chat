@@ -157,7 +157,7 @@ function concludeSelection() {
 
 // Função para adicionar uma nova pessoa na área de conversas
 function updateConversationMenu(users, currentUser, socket) {
-    const menuConversas = document.getElementById('menu-conversas');
+    const menuConversas = document.getElementById('conversas');
     const conversas = menuConversas.getElementsByClassName('msg');
     // Converte a HTMLCollection para um array para permitir o uso do método forEach
     Array.from(conversas).forEach((conversa) => {
@@ -175,7 +175,7 @@ function updateConversationMenu(users, currentUser, socket) {
                     <div class="msg-username">${user}</div>
                 </div>
             `;
-            menuConversas.appendChild(div);
+            menuConversas.append(div);
 
             // Adiciona um evento de clique para iniciar uma conversa privada
             div.addEventListener('click', () => {
