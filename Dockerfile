@@ -1,9 +1,11 @@
 FROM python:3.11
 
-# Instalar dependências do sistema necessárias para compilar mysqlclient
+# Instalar dependências do sistema necessárias para compilar mysqlclient e mariadb
 RUN apt-get update && apt-get install -y \
     build-essential \
-    default-libmysqlclient-dev
+    default-libmysqlclient-dev \
+    pkg-config \
+    libmariadb-dev
 
 # Set the working directory
 WORKDIR /build
