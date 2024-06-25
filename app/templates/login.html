@@ -59,7 +59,6 @@
 
     <div class="form-container" id="register-form" style="display:none;">
         <h2>Register</h2>
-        <input type="text" id="display-name" placeholder="Display name" required>
         <input type="text" id="register-username" placeholder="Username" required>
         <input type="password" id="register-password" placeholder="Password" required>
         <input type="password" id="register-confirm-password" placeholder="Confirm Password" required>
@@ -91,7 +90,6 @@
 
             const username = document.getElementById('register-username').value;
             const password = document.getElementById('register-password').value;
-            const displayName = document.getElementById('display-name').value;
             const confirmPassword = document.getElementById('register-confirm-password').value;
 
             if (password !== confirmPassword) {
@@ -105,7 +103,7 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({username, displayName, password}),
+                body: JSON.stringify({username, password}),
             });
 
             const data = await response.json();
