@@ -1,4 +1,4 @@
-FROM python:3.11
+FROM python:3.10
 
 # Instalar dependências do sistema necessárias para compilar mysqlclient e mariadb
 RUN apt-get update && apt-get install -y \
