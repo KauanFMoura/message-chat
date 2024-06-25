@@ -2,10 +2,10 @@ FROM python:3.11
 
 # Instalar dependências do sistema necessárias para compilar mysqlclient e mariadb
 RUN apt-get update && apt-get install -y \
+    pkg-config \
     python3-dev \
     build-essential \
     default-libmysqlclient-dev \
-    pkg-config \
     libmariadb-dev
 
 
