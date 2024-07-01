@@ -171,6 +171,7 @@ html {
 }
 
 .chat-area {
+    display: None;
     flex-grow: 1;
 }
 .div-bar {
@@ -459,6 +460,12 @@ html {
 .chat-msg {
     display: flex;
     padding: 0 20px 45px;
+}
+.chat-msg-user {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #333; /* Mude a cor conforme necessário */
 }
 .chat-msg-content {
     margin-left: 12px;

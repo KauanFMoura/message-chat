@@ -9,18 +9,33 @@ RUN apt-get update && apt-get install -y \
     default-libmysqlclient-dev \
     libmariadb-dev
 
+# Definir variáveis de ambiente
+ENV PORT 8080
+ENV HOST 0.0.0.0
 
-# Set the working directory
-WORKDIR /build
+ENV DB_USER=admin-whatsut
+ENV DB_PASS=sd-utfpr-2024
+ENV DB_NAME=whatsut
+ENV INSTANCE_UNIX_SOCKET=/cloudsql/ancient-spark-422614-h6:southamerica-east1:pi1
+ENV SECRET_KEY=x29s0WiWZQOT0bBXoA8aJpISmXPBYAeW
+ENV CLOUD_STORAGE_BUCKET=whats-ut
 
-# Copy the current directory contents into the container at /build
-COPY . ./
 
-# Install the required dependencies
-RUN pip install -r requirements.txt
+# Definir a variável de ambiente para dizer ao Flask para rodar no modo produção
+ENV FLASK_ENV=production
+# Definir o diretório de trabalho
+WORKDIR /app
 
-# Make port 8080 available to the world outside this container
+# Copiar o conteúdo atual para o contêiner em /app
+COPY . .
+
+
+
+# Instalar as dependências
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Expor a porta 8080 para acesso externo
 EXPOSE 8080
 
-# Run app.py when the container launches
+# Executar o app.py quando o contêiner for iniciado
 CMD ["python", "app.py"]

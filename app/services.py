@@ -1,9 +1,10 @@
 from app.models import *
-from app import db
+from app import db, utils
 from sqlalchemy import or_, desc
 
 
 def create_user(usu_username, usu_password, usu_displayname, usu_profile_image_uuid, usu_status):
+    usu_password = utils.gen_hash_pasw(usu_password)
     user = User(usu_username=usu_username, usu_password=usu_password, usu_displayname=usu_displayname,
                 usu_profile_image_uuid=usu_profile_image_uuid, usu_status=usu_status)
     db.session.add(user)
@@ -27,12 +28,19 @@ def register_group_message(gm_group_id, gm_sender_id, gm_message, gm_datetime, g
     return group_message
 
 
-def get_user_by_id(usu_id):
+def get_user_by_id(usu_id, include_profile_image=False):
+    query = db.session.query(User)
+    if include_profile_image:
+        query = query.options(db.lazyload(User.profile_image))
+    users = query.all()
     return User.query.filter_by(usu_id=usu_id).first()
 
 
-def get_user_by_username(usu_username):
-    return User.query.filter_by(usu_username=usu_username).first()
+def get_user_by_username(usu_username, include_profile_image=False):
+    query = db.session.query(User)
+    if include_profile_image:
+        query = query.options(db.lazyload(User.profile_image))
+    return query.filter_by(usu_username=usu_username).first()
 
 
 def create_chat_group(gp_name, gp_creator, gp_description, gp_image_uuid):
@@ -74,7 +82,8 @@ def get_users_private_messages(user1_id, user2_id, limit=50):
 
 
 def get_group_messages(group_id, limit=50):
-    messages = GroupMessage.query.filter_by(gm_group_id=group_id).order_by(desc(GroupMessage.datetime)).limit(limit).all()
+    messages = GroupMessage.query.filter_by(gm_group_id=group_id).order_by(desc(GroupMessage.datetime)).limit(
+        limit).all()
     return messages
 
 
@@ -99,5 +108,32 @@ def remove_admin_group_user(ghu_group_id, ghu_user_id):
     return group_has_user
 
 
-def save_file():
-    pass
+def get_file_by_uuid(file_uuid):
+    return File.query.filter_by(file_uuid=file_uuid).first()
+
+
+def create_file(file_uuid, file_name, file_ext):
+    file = File(file_uuid=file_uuid, file_name=file_name, file_ext=file_ext)
+    db.session.add(file)
+    db.session.commit()
+    return file
+
+
+def edit_user(usu_id, usu_username, usu_password, usu_displayname, usu_profile_image_uuid, usu_status):
+    user = User.query.filter_by(usu_id=usu_id).first()
+    user.usu_username = usu_username
+    user.usu_password = usu_password
+    user.usu_displayname = usu_displayname
+    user.usu_profile_image_uuid = usu_profile_image_uuid
+    user.usu_status = usu_status
+    db.session.commit()
+    return user
+
+
+def get_all_users(include_profile_image=False):
+    # Consulta todos os usuários
+    query = db.session.query(User)
+    if include_profile_image:
+        query = query.options(db.lazyload(User.profile_image))
+    users = query.all()
+    return users

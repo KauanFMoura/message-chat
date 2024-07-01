@@ -129,7 +129,6 @@ function concludeSelection() {
     let message = 'Selected contacts:\n';
     selectedContacts.forEach(contact => {
         const contactName = document.querySelector(`.list-contact[data-username="${contact}"] .list-contact-username`);
-        console.log(contactName)
         if (contactName) {
             message += '- ' + contactName.innerText + '\n';
         }
@@ -202,46 +201,118 @@ function isUserAlreadyInList(container, username) {
     return false;
 }
 
+function getUsersFromDivs(divs){
+    let users = [];
+    for (let i = 0; i < divs.length; i++) {
+        users.push(divs[i].dataset.user);
+    }
+    return users;
+}
 
+
+function getUserDiv(conversas, userId) {
+    for (let conversa of conversas) {
+        if (conversa.dataset.user === userId) {
+            return conversa; // Encontrou um elemento com data-user igual a userId
+        }
+    }
+    return null; // Não encontrou nenhum elemento com data-user igual a userId
+}
+
+let lastSelectedUserDiv = null;
+let chatStates = [];
 // Função para adicionar uma nova pessoa na área de conversas
 // Função para atualizar a lista de conversas com base no tipo (usuário ou grupo)
-function updateConversationMenu(type, data, currentUser, socket) {
-    const menuConversas = document.getElementById('conversas');
+function updateConversationMenu(menu, data, currentUser, socket) {
+    const menuConversas = document.getElementById(menu);
     const conversas = menuConversas.getElementsByClassName('msg');
 
-    // Limpa as conversas existentes
-    Array.from(conversas).forEach((conversa) => {
-        conversa.remove();
-    });
+    // Cria uma lista com os usuários offlines, para remover a classe 'online' deles
+    let offlineUsers = getUsersFromDivs(conversas).filter(user => !Object.keys(data).includes(user));
 
     // Adiciona usuários na lista de conversas se o tipo for 'user'
-    if (type === 'user') {
-        data.forEach(user => {
-            if (user !== currentUser) {
+if (menu === 'conversas-pessoas') {
+    // Itera sobre as chaves do objeto data
+    console.log(data);
+    for (let username in data) {
+        if (data.hasOwnProperty(username)) {
+            let user = data[username];
+            let usuarioDiv = getUserDiv(conversas, username);
+            console.log(username, usuarioDiv);
+            if(usuarioDiv != null){
+                console.log(usuarioDiv)
+                if (user.online){
+                    if (!usuarioDiv.classList.contains('online')) {
+                        usuarioDiv.classList.add('online');
+                    }
+                } else {
+                    if (usuarioDiv.classList.contains('online')) {
+                        usuarioDiv.classList.remove('online');
+                    }
+                }
+                console.log(usuarioDiv)
+            }else if (username !== currentUser) {
                 const div = document.createElement('div');
                 div.classList.add('msg');
-                div.dataset.user = user; // Adiciona um atributo de dados para identificar o usuário
+                if (user.online){
+                    div.classList.add('online');
+                }
+                div.dataset.user = username; // Adiciona um atributo de dados para identificar o usuário
                 div.innerHTML = `
-                    <img class="msg-profile" src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3364143/download+%281%29.png" alt="" />
+                    <img class="msg-profile" src="${user.profileImage ? user.profileImage : 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/3364143/download+%281%29.png'}" alt="" />
                     <div class="msg-detail">
-                        <div class="msg-username">${user}</div>
+                        <div class="msg-username">${user.displayName}</div>
                     </div>
                 `;
                 menuConversas.append(div);
 
+                chatStates[username] = {
+                    'chat-area-main': `<div class="chat-area-main"></div>`,
+                    'inputText': ''
+                };
+
                 // Adiciona um evento de clique para iniciar uma conversa privada
                 div.addEventListener('click', () => {
-                    startPrivateChat(currentUser, user, socket);
-                    document.getElementById('chat-area-title').innerText = user;
+                    let chatAreaMainDiv = document.querySelector('.chat-area-main');
+                    let inputText = document.getElementById('inputText');
+
+                    if(lastSelectedUserDiv != null){
+                        console.log(chatStates[lastSelectedUserDiv.dataset.user]);
+                        lastSelectedUserDiv.classList.remove('active');
+                        chatStates[lastSelectedUserDiv.dataset.user]['chat-area-main'] = chatAreaMainDiv;
+                        chatStates[lastSelectedUserDiv.dataset.user]['inputText'] = inputText.value;
+                    }
+
+                    chatAreaMainDiv = chatStates[username]['chat-area-main'];
+                    inputText.value = chatStates[username]['inputText'];
+                    document.getElementById('chat-area-title').innerText = user.displayName;
+                    document.getElementById('chat-user-image').src = div.querySelector('.msg-profile').src;
+
+                    div.classList.add('active');
+                    lastSelectedUserDiv = div;
+
+                    startPrivateChat(currentUser, username, socket);
+
                     hideGroupDetails(); // Esconde os detalhes do grupo ao clicar em uma pessoa
                 });
             }
-        });
-        hideGroupDetails(); // Garante que os detalhes do grupo sejam escondidos ao alternar para 'user'
+        }
     }
 
+    // Para cada usuário offline, removo a classe online se existir
+    for (let username of offlineUsers){
+        let usuarioDiv = getUserDiv(conversas, username);
+        if (usuarioDiv != null){
+            if (usuarioDiv.classList.contains('online')) {
+                usuarioDiv.classList.remove('online');
+            }
+        }
+    }
+    hideGroupDetails(); // Garante que os detalhes do grupo sejam escondidos ao alternar para 'user'
+}
+
     // Adiciona grupos na lista de conversas se o tipo for 'group'
-    else if (type === 'group') {
+    else if (menu === 'conversas-grupos') {
         data.forEach(group => {
             const div = document.createElement('div');
             div.classList.add('msg');
@@ -379,7 +450,6 @@ function showGroupDetails(group) {
     // Função para mostrar os pedidos de entrada
     function showEntryRequests(requests) {
         toogleGroupEntrada(group);
-        console.log('Pedidos de entrada:', requests);
 
         // Adiciona eventos de aceitar e recusar pedidos de entrada
         const entryRequests = document.getElementById('detail-pedidos-group').querySelectorAll('.contact');
@@ -492,8 +562,8 @@ function hideGroupDetails() {
 // Função para iniciar ou entrar em uma sala privada ao clicar em uma conversa
 function startPrivateChat(currentUser, otherUser, socket) {
     const room = `${currentUser}-${otherUser}`;
-
     // Emitir evento 'join_room' para o servidor
+    console.log(socket);
     socket.emit('join_room', {username: currentUser, room: room});
     setConversationType('user', otherUser);
     // Limpar a área de chat principal
@@ -602,7 +672,6 @@ function loadAndDisplayGroupMessages(currentUser, groupName) {
                 const { sender, message: msg } = message;
                 const currentTime = new Date().toLocaleTimeString();
                 let messageClass = 'chat-msg';
-                console.log(sender, localStorage.getItem('username'))
                 // A mensagem deve ser classificada como 'owner' se o remetente for o usuário atual
                 if (sender === localStorage.getItem('username')) {
                     messageClass += ' owner';
