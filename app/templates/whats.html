@@ -263,7 +263,7 @@
 
     // Função para enviar mensagem de grupo ao servidor
     const sendGroupMessage = (message) => {
-        socket.emit('message_group', {
+        socket.emit('group_message', {
             sender: currentUser,
             group_id: currentChatTarget, // Variável que armazena o nome do grupo atual
             message: message
@@ -355,7 +355,8 @@
 
     // Evento para receber mensagens de grupo
     socket.on('group_message', (data) => {
-        const {sender, message} = data;
+        let message = data.message;
+        let sender = data.sender;
         let group_id = data.group_id;
         const currentTime = new Date().toLocaleTimeString();
         let messageClass = 'chat-msg';
@@ -382,19 +383,19 @@
         if (!groups[group_id]['chatState']) {
             groups[group_id]['chatState'] = { 'chat-area-main': '', 'inputText': '' };
         }
+        groups[group_id]['chatState']['chat-area-main'] += messageElement;
 
-        // Adiciona a mensagem ao chat atual
-        let chatTarget = groups[group_id]['chatState']['chat-area-main'];
-        chatTarget.insertAdjacentHTML('beforeend', messageElement);
+        // Se o chat do remetente está visível, atualize a área de chat
+        if (lastSelectedGroupDiv && lastSelectedGroupDiv.dataset.group === group_id) {
+            let chatTarget = document.querySelector('.chat-area-main');
+            chatTarget.innerHTML = groups[group_id]['chatState']['chat-area-main'];
 
-        // Rola para o final da conversa
-        const lastMessageElement = chatTarget.lastElementChild;
-        if (lastMessageElement) {
-            lastMessageElement.scrollIntoView({behavior: 'smooth'});
+            // Rola para o final da conversa
+            const lastMessageElement = chatTarget.lastElementChild;
+            if (lastMessageElement) {
+                lastMessageElement.scrollIntoView({behavior: 'smooth'});
+            }
         }
-
-
-        groups[group_id]['chatState']['chat-area-main'] = chatTarget.innerHTML;
     });
 
     // Evento para receber mensagens privadas
@@ -414,15 +415,15 @@
             </div>
         `;
 
-        if (!users[sender]['chatStates']) {
-            users[sender]['chatStates'] = { 'chat-area-main': '', 'inputText': '' };
+        if (!users[sender]['chatState']) {
+            users[sender]['chatState'] = { 'chat-area-main': '', 'inputText': '' };
         }
-        users[sender]['chatStates']['chat-area-main'] += messageElement;
-
+        users[sender]['chatState']['chat-area-main'] += messageElement;
+        console.log(users[sender]['chatState']['chat-area-main']);
         // Se o chat do remetente está visível, atualize a área de chat
         if (lastSelectedUserDiv && lastSelectedUserDiv.dataset.user === sender) {
             let chatTarget = document.querySelector('.chat-area-main');
-            chatTarget.innerHTML = chatStates[sender]['chat-area-main'];
+            chatTarget.innerHTML = users[sender]['']['chat-area-main'];
 
             // Rola para o final da conversa
             const lastMessageElement = chatTarget.lastElementChild;
@@ -459,6 +460,7 @@
             })
                     .then(response => response.json())
                     .then(data => {
+                        console.log(data);
                         updateConversationMenu('conversas-pessoas', data, currentUser, socket);
                     })
                     .catch(error => {
