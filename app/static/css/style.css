@@ -149,6 +149,7 @@ html {
     flex-shrink: 0;
     border-right: 1px solid var(--border-color);
 }
+
 #menu-contact{
     display: none;
     width: 340px;
@@ -156,9 +157,11 @@ html {
     border-right: 1px solid var(--border-color);
     transform: translateX(-100%); /* Esconde o menu para o lado esquerdo */
 }
+
 #menu-contact {
     transform: translateX(0); /* Exibe o menu ao lado direito */
 }
+
 #detail-area {
     width: 340px;
     flex-shrink: 0;
@@ -171,6 +174,7 @@ html {
 }
 
 .chat-area {
+    display: None;
     flex-grow: 1;
 }
 .div-bar {
@@ -403,6 +407,11 @@ html {
     margin: 0 0 10px 5px;
     border-bottom: solid 2px var(--border-color)
 }
+
+.chat-area-header:hover{
+    cursor: pointer;
+}
+
 .chat-header-contact-profile {
     width: 44px;
     height: 44px;
@@ -459,6 +468,12 @@ html {
 .chat-msg {
     display: flex;
     padding: 0 20px 45px;
+}
+.chat-msg-user {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #333; /* Mude a cor conforme necessário */
 }
 .chat-msg-content {
     margin-left: 12px;
@@ -1058,10 +1073,25 @@ html {
     width: 100%;
     height: 140px;
 }
-#new-group-name {
+
+.form-group input,
+.form-group select {
     width: 100%;
     background-color: var(--input-bg);
+    border: 1px solid #ccc; /* Opcional: Adiciona uma borda ao redor do campo */
+    padding: 8px; /* Opcional: Adiciona um pouco de preenchimento interno */
+    box-sizing: border-box; /* Garante que o preenchimento e a borda sejam incluídos na largura total */
+    border-radius: 4px; /* Opcional: Adiciona bordas arredondadas */
 }
+
+.form-group select {
+    /* Adiciona estilos específicos para o select, se necessário */
+    -webkit-appearance: none; /* Remove o estilo padrão em alguns navegadores Webkit (opcional) */
+    -moz-appearance: none; /* Remove o estilo padrão em navegadores Firefox (opcional) */
+    appearance: none; /* Remove o estilo padrão em navegadores modernos */
+    background-color: var(--input-bg); /* Garante que a cor de fundo seja a mesma */
+}
+
 #create-new-group-form {
     display: none;
     position: absolute;
@@ -1160,12 +1190,12 @@ html {
 #detail-pedidos-group {
     transform: translateX(-0); /* Exibe o menu ao lado direito */
 }
-.contact-icon-aceita {
+.contact-icon {
     display: flex;
     align-items: center;
     cursor: pointer;
 }
-.contact-icon-aceita:hover {
+.contact-icon:hover {
     padding: 5px 0 0 0;
 }
 #aceita {

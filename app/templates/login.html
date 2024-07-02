@@ -115,9 +115,6 @@
                 registerMessage.textContent = data.message;
                 registerMessage.style.color = 'green';
 
-                // Salva o nome de usuário no localStorage
-                localStorage.setItem('username', username);
-
                 // Redirecionar para a página de chat
                 window.location.href = '/whats';
             } else {
@@ -146,9 +143,6 @@
             if (data.status === 'success') {
                 loginMessage.textContent = data.message;
                 loginMessage.style.color = 'green';
-
-                // Salva o nome de usuário no localStorage
-                localStorage.setItem('username', username);
 
                 // Redirecionar para a página de chat
                 window.location.href = '/whats';
