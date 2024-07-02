@@ -48,26 +48,13 @@ def handle_user_back_online():
         print('Unauthorized access')  # Lida com o caso em que o usuário não está autenticado corretamente
 
 
-@socketio.on('leave_room')
-def on_leave(data):
-    username = data['username']
-    room = data['room']
-
-    if room in private_rooms and username in private_rooms[room]:
-        leave_room(room)
-        private_rooms[room].remove(username)
-
-    print(f'{username} left room {room}')
-    emit('room_status', {'room': room, 'users': list(private_rooms[room])}, broadcast=True)
-
-
 @socketio.on('private_message')
 def handle_message(data):
     sender = data['sender']
     receiver = data['receiver']
     message = data['message']
     sid_receiver = connected_users.get(receiver, {}).get('sid')
-    print(sender, receiver)
+
     if receiver in connected_users.keys():
         receiver_id = connected_users[receiver]['id']
     else:
@@ -79,6 +66,7 @@ def handle_message(data):
         sender_id = services.get_user_by_username(sender).usu_id
 
     if sid_receiver:
+        print(f'{sender} sent a private message to {receiver}')
         emit('private_message', {'sender': sender, 'message': message}, to=sid_receiver)
 
     # Registrando mensagem no banco de dados
@@ -101,6 +89,7 @@ def handle_group_message(data):
 
     room_list = [connected_users[user]['sid'] for user in group_rooms[group_id]]
     # Emite a mensagem para o grupo
-    emit('group_message', {'sender': sender, 'message': message, 'group_id': group_id, "timestamp": timestamp}, room=room)
-
     print(f'{sender} sent a group message to {group_id}')
+    emit('group_message', {'sender': sender, 'message': message, 'group_id': group_id, "timestamp": timestamp}, room=room_list)
+
+

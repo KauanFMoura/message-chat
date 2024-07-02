@@ -422,7 +422,7 @@ function saveCurrentChatState(keyValue, chatAreaMainDiv, inputText) {
 
 }
 
-function restoreChatState(keyValue, chatAreaMainDiv, inputText, type) {
+function restoreChatState(keyValue, chatAreaMainDiv, inputText) {
     if (currentConversationType === 'user'){
         if (!users[keyValue]['chatState']) {
             users[keyValue]['chatState'] = { 'chat-area-main': '', 'inputText': '' };
