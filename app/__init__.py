@@ -29,38 +29,61 @@ with app.app_context():
     test_db_connection()
 
 # Dicionário para manter o controle das salas (rooms) de mensagens privadas
-private_rooms = {}
+group_rooms = {}
 
 
 class ObservableDict(dict):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.update_callback = lambda: None  # Callback padrão vazio
+        self.updated_callback = lambda key: None  # Callback padrão vazio
+        self.deleted_callback = lambda key: None
 
     def __setitem__(self, key, value):
         super().__setitem__(key, value)
-        self.update_callback()
+        self.updated_callback(key)
 
     def __delitem__(self, key):
         super().__delitem__(key)
-        self.update_callback()
+        self.deleted_callback(key)
 
-    def set_update_callback(self, callback):
-        self.update_callback = callback
+    def set_updated_callback(self, callback):
+        self.updated_callback = callback
+
+    def set_deleted_callback(self, callback):
+        self.updated_callback = callback
+
+
+def updated_callback(key):
+    for group in connected_users[key]['groups']:
+        if group in group_rooms.keys() and key not in group_rooms[group]:
+            group_rooms[group].add(key)
+            socketio.emit('group_status', {'group': group, 'users': list(group_rooms[group])}, broadcast=True)
+    socketio.emit('user_update', connected_users)
+
+
+def deleted_callback(key):
+    # Lista temporária para armazenar as chaves dos grupos a serem modificados
+    groups_to_modify = []
+
+    # Iterar sobre as chaves do dicionário group_rooms
+    for group in list(group_rooms.keys()):
+        if key in group_rooms[group]:
+            groups_to_modify.append(group)
+
+    # Aplicar as modificações após a iteração
+    for group in groups_to_modify:
+        group_rooms[group].remove(key)
+        if len(group_rooms[group]) == 0:
+            del group_rooms[group]
+
+    socketio.emit('user_update', connected_users)
 
 
 # Lista de usuários conectados
 connected_users = ObservableDict({})
-connected_users.set_update_callback(lambda: socketio.emit('user_update', connected_users))
+connected_users.set_updated_callback(updated_callback)
+connected_users.set_deleted_callback(deleted_callback)
 
-# Dicionário para manter o controle das salas (rooms) de mensagens privadas
-private_rooms = {}
-group_rooms = {}
-groups = [
-    {'name': 'Grupo A', 'admin': 'a', 'users': ['a', 'b'], 'requests': ['b', 'c']},
-    {'name': 'Grupo B', 'admin': 'b', 'users': ['b', 'c'], 'requests': []}
-]
-message_database = {}
 
 from app import routes
 from app import sockets

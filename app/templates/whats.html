@@ -11,7 +11,6 @@
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"/>
     <script src="{{ url_for('static', filename='javascript/javascript.js') }}"></script>
     <script src="https://cdn.socket.io/4.3.1/socket.io.min.js"></script>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 </head>
@@ -112,8 +111,15 @@
             <div class="form-group">
                 <!-- Formulário para criar novo grupo (inicialmente oculto) -->
                 <form id="create-new-group-form">
-                    <input type="text" id="new-group-name" placeholder="Nome do novo grupo" required/>
-                    <div class="form-group-button">
+                    <input type="text" id="new-group-name" placeholder="Nome do grupo" required/>
+                    <input type="text" id="new-group-description" placeholder="Descrição" required/>
+                    <label for="exclusion_types" style="text-align: center;"></label>
+                    <select id="exclusion_types" name="exclusion_types" required>
+                        <option value="" disabled selected>Ação ao você sair:</option>
+                        <option value="1">Exclusão do grupo</option>
+                        <option value="2">Gerar novo administrador</option>
+                    </select>
+                    <div class="form-group-button" style="padding-top: 20px;">
                         <button type="submit">Criar</button>
                     </div>
                 </form>
@@ -147,7 +153,7 @@
         <div id="detail-area">
             <div class="detail-area-header">
                 <div class="msg-profile group">
-                    <img class="msg-profile" src="http://127.0.0.1:5000/data/0b203bc0-c286-4847-ba2d-7a0f9790fe03.jpg" alt="">
+                    <img id="detail-group-icon" class="msg-profile" src="" alt="">
                 </div>
                 <div class="detail-title">Trio Parada Dura</div>
                 <div class="detail-subtitle">Created by Aysenur, 1 May 2020</div>
@@ -176,7 +182,7 @@
                     <div class="contact-detail">
                         <div class="contact-username">Madison Jones</div>
                     </div>
-                    <div class="contact-icon-remove">
+                    <div class="contact-icon">
                             <span id="remove" class="material-symbols-outlined">
                                 do_not_disturb_on
                             </span>
@@ -188,7 +194,7 @@
                     <div class="contact-detail">
                         <div class="contact-username">Miguel Cohen</div>
                     </div>
-                    <div class="contact-icon-remove">
+                    <div class="contact-icon">
                             <span id="remove" class="material-symbols-outlined">
                                 do_not_disturb_on
                             </span>
@@ -204,9 +210,17 @@
 </div>
 </div>
 <script>
-    const socket = io(); // Inicializa o Socket.IO
+    const socket = io({
+        // Opções de configuração para reconexão
+        reconnection: true, // Ativa a reconexão automática
+        reconnectionAttempts: Infinity, // Número máximo de tentativas de reconexão (Infinity para tentar indefinidamente)
+        reconnectionDelay: 1000, // Tempo (em ms) entre tentativas de reconexão
+        reconnectionDelayMax: 5000, // Tempo máximo (em ms) entre tentativas de reconexão
+        randomizationFactor: 0.5 // Fator de aleatoriedade para a duração do atraso de reconexão
+    });
     const messageForm = document.querySelector('.chat-area-footer');
     const chatAreaMain = document.querySelector('.chat-area-main');
+    const chatHeader = document.querySelector('.chat-area-header');
     let lastSelectedUser = null;
 
     document.addEventListener('privateChatStarted', function (event) {
@@ -214,7 +228,6 @@
     });
 
     const currentUser = "{{ username }}";
-    console.log("Current User:", currentUser);
 
     if (!currentUser) {
         alert('Usuário não está logado');
@@ -233,6 +246,16 @@
         updateConversationMenu('conversas-pessoas', users, currentUser, socket);
     });
 
+    socket.on('group_update', (groups) => {
+        updateConversationMenu('conversas-grupos', groups, currentUser, socket);
+    });
+
+
+
+    socket.on('new_entry_request', (data) => {
+        updateGroupRequests(data);
+    });
+
     document.addEventListener('DOMContentLoaded', () => {
         // Emitir evento 'user_back_online' ao carregar a página
         socket.emit('user_back_online');
@@ -242,7 +265,7 @@
     const sendGroupMessage = (message) => {
         socket.emit('message_group', {
             sender: currentUser,
-            groupName: currentChatTarget, // Variável que armazena o nome do grupo atual
+            group_id: currentChatTarget, // Variável que armazena o nome do grupo atual
             message: message
         });
         const currentTime = new Date().toLocaleTimeString();
@@ -251,7 +274,7 @@
         <div class="${messageClass}">
             <div class="chat-msg-profile">
                 <img class="chat-msg-img" src="icone_usuario.png" alt="" />
-                <div class="chat-msg-date">Mensagem vista ${currentTime}</div>
+                <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
             </div>
             <div class="chat-msg-user">Nome do Usuário</div>
             <div class="chat-msg-content">
@@ -270,7 +293,7 @@
 
     // Função para enviar mensagem ao servidor
     const sendMessage = (message) => {
-        socket.emit('message_private', {
+        socket.emit('private_message', {
             sender: currentUser,
             receiver: lastSelectedUser,
             message: message
@@ -281,7 +304,7 @@
         const messageElement = `
             <div class="${messageClass}">
                 <div class="chat-msg-profile">
-                    <div class="chat-msg-date">Mensagem vista ${currentTime}</div>
+                    <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
                 </div>
                 <div class="chat-msg-content">
                     <div class="chat-msg-text">${message}</div>
@@ -289,14 +312,21 @@
             </div>
         `;
 
-        // Adicionar o novo elemento de mensagem ao chat
-        chatAreaMain.insertAdjacentHTML('beforeend', messageElement);
+        // Adiciona a mensagem ao chat atual
+        let chatTarget = document.querySelector('.chat-area-main');
+        chatTarget.insertAdjacentHTML('beforeend', messageElement);
 
-        // Selecionar o último elemento adicionado e rolar para ele
-        const lastMessageElement = chatAreaMain.lastElementChild;
+        // Rola para o final da conversa
+        const lastMessageElement = chatTarget.lastElementChild;
         if (lastMessageElement) {
             lastMessageElement.scrollIntoView({behavior: 'smooth'});
         }
+
+        // Atualiza o estado do chat atual
+        if (!users[lastSelectedUser]['chatState']) {
+            users[lastSelectedUser]['chatState'] = { 'chat-area-main': '', 'inputText': '' };
+        }
+        users[lastSelectedUser]['chatState']['chat-area-main'] = chatTarget.innerHTML;
     };
 
 
@@ -318,56 +348,90 @@
             }
         }
     });
+
+    chatHeader.addEventListener('click', (event) => {
+        showDetails(currentConversationType, currentChatTarget);
+    });
+
     // Evento para receber mensagens de grupo
     socket.on('group_message', (data) => {
         const {sender, message} = data;
+        let group_id = data.group_id;
         const currentTime = new Date().toLocaleTimeString();
         let messageClass = 'chat-msg';
 
         // Verifica se a mensagem é do grupo que está ativo
         if (sender === currentChatTarget) {
-            const messageElement = `
-                <div class="${messageClass}">
-                    <div class="chat-msg-profile">
-                        <img class="chat-msg-img" src="icone_grupo.png" alt="" /> <!-- Ícone do grupo aqui -->
-                        <div class="chat-msg-date">Mensagem vista ${currentTime}</div>
-                    </div>
-                    <div class="chat-msg-user">Nome do Usuário</div>
-                    <div class="chat-msg-content">
-                        <div class="chat-msg-text">${message}</div>
-                    </div>
-                </div>
-            `;
-
-            chatAreaMain.insertAdjacentHTML('beforeend', messageElement);
-            chatAreaMain.scrollTop = chatAreaMain.scrollHeight;
+            let messageClass = 'chat-msg owner';
         }
+        const messageElement = `
+        <div class="${messageClass}">
+            <div class="chat-msg-profile">
+                <img class="chat-msg-img" src="${users[sender].profileImage}" alt="" />
+                <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
+            </div>
+            <div class="chat-msg-user">Nome do Usuário</div>
+            <div class="chat-msg-content">
+                <div class="chat-msg-text">${message}</div>
+            </div>
+        </div>
+        `;
+
+
+        // Atualiza o estado do chat atual
+        if (!groups[group_id]['chatState']) {
+            groups[group_id]['chatState'] = { 'chat-area-main': '', 'inputText': '' };
+        }
+
+        // Adiciona a mensagem ao chat atual
+        let chatTarget = groups[group_id]['chatState']['chat-area-main'];
+        chatTarget.insertAdjacentHTML('beforeend', messageElement);
+
+        // Rola para o final da conversa
+        const lastMessageElement = chatTarget.lastElementChild;
+        if (lastMessageElement) {
+            lastMessageElement.scrollIntoView({behavior: 'smooth'});
+        }
+
+
+        groups[group_id]['chatState']['chat-area-main'] = chatTarget.innerHTML;
     });
 
     // Evento para receber mensagens privadas
     socket.on('private_message', (data) => {
-        const {sender, message} = data;
+        const { sender, message } = data;
         const currentTime = new Date().toLocaleTimeString();
         let messageClass = 'chat-msg';
 
-        // Verifica se a mensagem é do usuário com quem você está tendo um chat privado
-        if (sender === currentChatTarget) {
-
-            const messageElement = `
-                <div class="${messageClass}">
-                    <div class="chat-msg-profile">
-                        <div class="chat-msg-date">Message seen ${currentTime}</div>
-                    </div>
-                    <div class="chat-msg-content">
-                        <div class="chat-msg-text">${message}</div>
-                    </div>
+        const messageElement = `
+            <div class="${messageClass}">
+                <div class="chat-msg-profile">
+                    <div class="chat-msg-date">Message seen ${currentTime}</div>
                 </div>
-            `;
+                <div class="chat-msg-content">
+                    <div class="chat-msg-text">${message}</div>
+                </div>
+            </div>
+        `;
 
-            chatAreaMain.insertAdjacentHTML('beforeend', messageElement);
-            chatAreaMain.scrollTop = chatAreaMain.scrollHeight;
+        if (!users[sender]['chatStates']) {
+            users[sender]['chatStates'] = { 'chat-area-main': '', 'inputText': '' };
+        }
+        users[sender]['chatStates']['chat-area-main'] += messageElement;
+
+        // Se o chat do remetente está visível, atualize a área de chat
+        if (lastSelectedUserDiv && lastSelectedUserDiv.dataset.user === sender) {
+            let chatTarget = document.querySelector('.chat-area-main');
+            chatTarget.innerHTML = chatStates[sender]['chat-area-main'];
+
+            // Rola para o final da conversa
+            const lastMessageElement = chatTarget.lastElementChild;
+            if (lastMessageElement) {
+                lastMessageElement.scrollIntoView({behavior: 'smooth'});
+            }
         }
     });
+
 
     // Requisição para obter a lista de pessoas do servidor
     function getAndUpdateGrupos(){
@@ -380,8 +444,6 @@
                     .then(response => response.json())
                     .then(data => {
                         updateConversationMenu('conversas-grupos', data, currentUser, socket);
-                        document.getElementById('conversas-pessoas').style.display = 'none';
-                        document.getElementById('conversas-grupos').style.display = 'block';
                     })
                     .catch(error => {
                         console.error('Erro ao obter lista de grupos:', error);
@@ -398,8 +460,6 @@
                     .then(response => response.json())
                     .then(data => {
                         updateConversationMenu('conversas-pessoas', data, currentUser, socket);
-                        document.getElementById('conversas-pessoas').style.display = 'block';
-                        document.getElementById('conversas-grupos').style.display = 'none';
                     })
                     .catch(error => {
                         console.error('Erro ao obter lista de grupos:', error);
@@ -438,10 +498,13 @@
             event.preventDefault();
 
             const groupName = document.getElementById('new-group-name').value.trim();
-
+            const groupDescription = document.getElementById('new-group-description').value.trim();
+            const exclusionType = document.getElementById('exclusion_types').value;
             if (groupName) {
                 const data = {
-                    name: groupName
+                    name: groupName,
+                    description: groupDescription,
+                    exclusionType: exclusionType
                 };
 
                 fetch('/api/create_group', {

@@ -34,7 +34,8 @@ class Group(db.Model):
     gp_creator = db.Column(db.Integer, db.ForeignKey('user.usu_id'), nullable=False)
     gp_description = db.Column(db.String(100), nullable=True)
     gp_image_uuid = db.Column(db.String(100), nullable=True)
-    gb_exclusion_type = db.Column(db.Integer, nullable=False)
+    gp_exclusion_type = db.Column(db.Integer, nullable=False)
+    gp_active = db.Column(db.Boolean, nullable=False)
 
 
 class GroupHasUser(db.Model):
@@ -44,6 +45,7 @@ class GroupHasUser(db.Model):
     ghu_user_id = db.Column(db.Integer, db.ForeignKey('user.usu_id'), nullable=False, primary_key=True)
     ghu_is_admin = db.Column(db.Boolean, nullable=False)
     ghu_entry_date = db.Column(db.DateTime, nullable=False)
+    ghu_accepted_request = db.Column(db.Boolean, nullable=False)
 
 
 class GroupMessage(db.Model):

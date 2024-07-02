@@ -146,36 +146,39 @@ function concludeSelection() {
     toggleSelectionMode(); // Sair do modo de seleção após concluir
 }
 
-function toogleGroupEntrada(group) {
+function toogleGroupEntrada(group_id, justUpdate) {
+    let group = groups[group_id];
     var groupEntrada = document.getElementById('detail-pedidos-group');
     var detailGroup = document.getElementById('detail-group');
 
     // Limpa a lista de pedidos de entrada
     groupEntrada.innerHTML = '';
 
-    if (groupEntrada.style.display === 'block') {
+    if (groupEntrada.style.display === 'block' && !justUpdate) {
         groupEntrada.style.display = 'none';
         detailGroup.style.display = 'block';
     } else {
         groupEntrada.style.display = 'block';
         detailGroup.style.display = 'none';
 
+
         // Mostra os pedidos de entrada do grupo atual
         group.requests.forEach(request => {
             const requestDiv = document.createElement('div');
+            let user = users[request];
             requestDiv.classList.add('contact');
             requestDiv.innerHTML = `
                 <img class="contact-profile"
-                    src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3364143/download+%2812%29.png" alt="" />
+                    src="${user.profileImage}" alt="" />
                 <div class="contact-detail">
                     <div class="contact-username">${request}</div>
                 </div>
-                <div class="contact-icon-aceita">
+                <div class="contact-icon">
                     <span id="aceita" class="material-symbols-outlined">
                         check
                     </span>
                 </div>
-                <div class="contact-icon-reject">
+                <div class="contact-icon">
                     <span id="remove" class="material-symbols-outlined">
                         do_not_disturb_on
                     </span>
@@ -189,6 +192,50 @@ function toogleGroupEntrada(group) {
         });
     }
 }
+
+function detailsIsOpened(){
+    let detailArea = document.getElementById('detail-area');
+    return detailArea.style.display === 'flex';
+}
+
+function hideEntryRequests() {
+    let groupEntrada = document.getElementById('detail-pedidos-group');
+    let detailGroup = document.getElementById('detail-group');
+    groupEntrada.style.display = 'none';
+    detailGroup.style.display = 'block';
+}
+
+
+// Função para esconder detalhes do grupo
+function hideDetails() {
+    const detailArea = document.getElementById('detail-area');
+    const detailGroup = document.getElementById('detail-group');
+
+    detailArea.style.display = 'none';  // Esconde a área de detalhes
+    if (detailGroup.style.display === 'none') {
+        toogleGroupEntrada();
+    }
+    hideEntryRequests();
+}
+
+function showDetails(type, keyValue) {
+    var detailArea = document.getElementById('detail-area');
+
+     if (detailArea.style.display === 'flex') {
+        detailArea.style.display = 'none';
+    } else {
+        if (type === 'group'){
+            showGroupDetails(keyValue);
+        } else if(type === 'user'){
+            showUserDetails(keyValue);
+        }
+
+        detailArea.style.display = 'flex';
+    }
+
+
+}
+
 
 // Função auxiliar para verificar se um usuário já está na lista de pedidos de entrada
 function isUserAlreadyInList(container, username) {
@@ -210,166 +257,320 @@ function getUsersFromDivs(divs){
 }
 
 
-function getUserDiv(conversas, userId) {
-    for (let conversa of conversas) {
-        if (conversa.dataset.user === userId) {
-            return conversa; // Encontrou um elemento com data-user igual a userId
+function getChatDiv(conversas, keyValue, type) {
+    if (type === 'group') {
+        for (let conversa of conversas) {
+            if (conversa.dataset.group === keyValue) {
+                return conversa;
+            } // Encontrou um elemento com data-user igual a userId
+        }
+    } else if (type === 'user'){
+        for (let conversa of conversas) {
+            if (conversa.dataset.user === keyValue) {
+                return conversa;
+            } // Encontrou um elemento com data-user igual a userId
         }
     }
+
     return null; // Não encontrou nenhum elemento com data-user igual a userId
 }
 
 let lastSelectedUserDiv = null;
-let chatStates = [];
+var lastSelectedGroupDiv = null;
+var users = {};
+var groups = {};
+
 // Função para adicionar uma nova pessoa na área de conversas
 // Função para atualizar a lista de conversas com base no tipo (usuário ou grupo)
-function updateConversationMenu(menu, data, currentUser, socket) {
+function updateConversationMenu(menu, data, currentUser, socket, firstTime = false) {
     const menuConversas = document.getElementById(menu);
     const conversas = menuConversas.getElementsByClassName('msg');
-
-    // Cria uma lista com os usuários offlines, para remover a classe 'online' deles
     let offlineUsers = getUsersFromDivs(conversas).filter(user => !Object.keys(data).includes(user));
 
-    // Adiciona usuários na lista de conversas se o tipo for 'user'
-if (menu === 'conversas-pessoas') {
-    // Itera sobre as chaves do objeto data
-    console.log(data);
+    if (menu === 'conversas-pessoas') {
+        updateUserConversations(menuConversas, conversas, data, currentUser, offlineUsers);
+    } else if (menu === 'conversas-grupos') {
+        updateGroupConversations(menuConversas, conversas, data, currentUser);
+    }
+}
+
+function updateUserConversations(menuConversas, conversas, data, currentUser, offlineUsers) {
     for (let username in data) {
         if (data.hasOwnProperty(username)) {
             let user = data[username];
-            let usuarioDiv = getUserDiv(conversas, username);
-            console.log(username, usuarioDiv);
-            if(usuarioDiv != null){
-                console.log(usuarioDiv)
-                if (user.online){
-                    if (!usuarioDiv.classList.contains('online')) {
-                        usuarioDiv.classList.add('online');
-                    }
-                } else {
-                    if (usuarioDiv.classList.contains('online')) {
-                        usuarioDiv.classList.remove('online');
-                    }
-                }
-                console.log(usuarioDiv)
-            }else if (username !== currentUser) {
-                const div = document.createElement('div');
-                div.classList.add('msg');
-                if (user.online){
-                    div.classList.add('online');
-                }
-                div.dataset.user = username; // Adiciona um atributo de dados para identificar o usuário
-                div.innerHTML = `
-                    <img class="msg-profile" src="${user.profileImage ? user.profileImage : 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/3364143/download+%281%29.png'}" alt="" />
-                    <div class="msg-detail">
-                        <div class="msg-username">${user.displayName}</div>
-                    </div>
-                `;
-                menuConversas.append(div);
+            let usuarioDiv = getChatDiv(conversas, username, 'user');
+            users[username] = user;
 
-                chatStates[username] = {
-                    'chat-area-main': `<div class="chat-area-main"></div>`,
-                    'inputText': ''
-                };
-
-                // Adiciona um evento de clique para iniciar uma conversa privada
-                div.addEventListener('click', () => {
-                    let chatAreaMainDiv = document.querySelector('.chat-area-main');
-                    let inputText = document.getElementById('inputText');
-
-                    if(lastSelectedUserDiv != null){
-                        console.log(chatStates[lastSelectedUserDiv.dataset.user]);
-                        lastSelectedUserDiv.classList.remove('active');
-                        chatStates[lastSelectedUserDiv.dataset.user]['chat-area-main'] = chatAreaMainDiv;
-                        chatStates[lastSelectedUserDiv.dataset.user]['inputText'] = inputText.value;
-                    }
-
-                    chatAreaMainDiv = chatStates[username]['chat-area-main'];
-                    inputText.value = chatStates[username]['inputText'];
-                    document.getElementById('chat-area-title').innerText = user.displayName;
-                    document.getElementById('chat-user-image').src = div.querySelector('.msg-profile').src;
-
-                    div.classList.add('active');
-                    lastSelectedUserDiv = div;
-
-                    startPrivateChat(currentUser, username, socket);
-
-                    hideGroupDetails(); // Esconde os detalhes do grupo ao clicar em uma pessoa
-                });
+            if (usuarioDiv) {
+                updateOnlineStatus(usuarioDiv, user);
+            } else if (username !== currentUser) {
+                createUserDiv(menuConversas, user, username, currentUser);
             }
         }
     }
 
-    // Para cada usuário offline, removo a classe online se existir
-    for (let username of offlineUsers){
-        let usuarioDiv = getUserDiv(conversas, username);
-        if (usuarioDiv != null){
-            if (usuarioDiv.classList.contains('online')) {
-                usuarioDiv.classList.remove('online');
-            }
+    offlineUsers.forEach(username => {
+        let usuarioDiv = getChatDiv(conversas, username, 'user');
+        if (usuarioDiv && usuarioDiv.classList.contains('online')) {
+            usuarioDiv.classList.remove('online');
         }
-    }
-    hideGroupDetails(); // Garante que os detalhes do grupo sejam escondidos ao alternar para 'user'
+    });
+
+    hideDetails();
 }
 
-    // Adiciona grupos na lista de conversas se o tipo for 'group'
-    else if (menu === 'conversas-grupos') {
-        data.forEach(group => {
-            const div = document.createElement('div');
-            div.classList.add('msg');
-            div.dataset.group = group.name; // Adiciona um atributo de dados para identificar o grupo
-            div.innerHTML = `
-                <img class="msg-profile" src="icone_grupo.png" alt="" /> <!-- Adicione o ícone do grupo aqui -->
-                <div class="msg-detail">
-                    <div class="msg-username">${group.name}</div>
-                    <div class="group-action-buttons"></div>
-                </div>
-            `;
-            menuConversas.append(div);
+function updateOnlineStatus(usuarioDiv, user) {
+    if (user.online) {
+        usuarioDiv.classList.add('online');
+    } else {
+        usuarioDiv.classList.remove('online');
+    }
+}
 
-            // Adiciona um evento de clique para iniciar uma conversa em grupo
-            div.addEventListener('click', () => {
-                startGroupChat(currentUser, group.name, socket);
-                document.getElementById('chat-area-title').innerText = group.name;
-                showGroupDetails(group); // Mostra os detalhes do grupo ao clicar no grupo
+function createUserDiv(menuConversas, user, username, currentUser) {
+    const div = document.createElement('div');
+    div.classList.add('msg');
+    if (user.online) div.classList.add('online');
+    div.dataset.user = username;
+    div.innerHTML = `
+        <img class="msg-profile" src="${user.profileImage}" alt="" />
+        <div class="msg-detail">
+            <div class="msg-username">${user.displayName}</div>
+        </div>
+    `;
+    menuConversas.append(div);
 
-                // Verifica se o usuário pode solicitar entrada no grupo
-                const actionButtonsDiv = div.querySelector('.group-action-buttons');
-                actionButtonsDiv.innerHTML = ''; // Limpa quaisquer botões existentes
+    initializeChatStates(username, user);
 
-                if (!group.users.includes(currentUser) && !group.requests.includes(currentUser)) {
-                    const requestButton = document.createElement('button');
-                    requestButton.classList.add('request-entry-button');
-                    requestButton.innerText = 'Solicitar entrada';
-                    requestButton.addEventListener('click', () => {
-                        requestGroupEntry(group.name, currentUser);
-                    });
-                    actionButtonsDiv.appendChild(requestButton);
-                } else if (group.requests.includes(currentUser)) {
-                    const requestStatus = document.createElement('div');
-                    requestStatus.classList.add('request-status');
-                    requestStatus.innerText = 'Solicitação pendente';
-                    actionButtonsDiv.appendChild(requestStatus);
-                }
-            });
+    div.addEventListener('click', () => {
+        handleUserClick(div, username, user.displayName);
+    });
+}
+
+function initializeChatStates(username, user) {
+    users[username]['chatState'] = { 'chat-area-main': '', 'inputText': '' };
+
+    if (user['messages'] && user['messages'][username]) {
+        user['messages'][username].forEach(message => {
+            const messageElement = createMessageElement(message, username);
+            users[username]['chatState']['chat-area-main'] += messageElement;
         });
     }
 }
 
-function requestGroupEntry(groupName, currentUser) {
+function createMessageElement(message, username) {
+    let sender = message.sender;
+    let timestamp = message.timestamp;
+    let messageContent = message.message;
+    let messageClass = 'chat-msg';
+
+    if (sender !== username) {
+        messageClass += ' owner';
+    }
+
+    return `
+        <div class="${messageClass}">
+            <div class="chat-msg-profile">
+                <div class="chat-msg-date">Mensagem enviada ${timestamp}</div>
+            </div>
+            <div class="chat-msg-content">
+                <div class="chat-msg-text">${messageContent}</div>
+            </div>
+        </div>
+    `;
+}
+
+function handleUserClick(div, username, displayName) {
+    hideDetails();
+
+    let chatAreaMainDiv = document.querySelector('.chat-area-main');
+    let inputText = document.getElementById('inputText');
+
+    if (lastSelectedUserDiv && currentConversationType === 'user') {
+        const previousUsername = lastSelectedUserDiv.dataset.user;
+        saveCurrentChatState(previousUsername, chatAreaMainDiv, inputText);
+        lastSelectedUserDiv.classList.remove('active');
+    }
+
+    setConversationType('user', username);
+    restoreChatState(username, chatAreaMainDiv, inputText);
+
+    document.getElementById('chat-area-title').innerText = displayName;
+    document.getElementById('chat-user-image').src = div.querySelector('.msg-profile').src;
+
+    div.classList.add('active');
+    lastSelectedUserDiv = div;
+
+    document.dispatchEvent(new CustomEvent('privateChatStarted', { detail: { otherUser: username } }));
+    hideDetails();
+}
+
+function saveCurrentChatState(keyValue, chatAreaMainDiv, inputText) {
+    if (currentConversationType === 'user'){
+        if (!users[keyValue]['chatState']) {
+            users[keyValue]['chatState'] = { 'chat-area-main': '', 'inputText': '' };
+        }
+        users[keyValue]['chatState']['chat-area-main'] = chatAreaMainDiv.innerHTML;
+        users[keyValue]['chatState']['inputText'] = inputText.value;
+    } else {
+        if (!groups[keyValue]['chatState']) {
+            groups[keyValue]['chatState'] = { 'chat-area-main': '', 'inputText': '' };
+        }
+        groups[keyValue]['chatState']['chat-area-main'] = chatAreaMainDiv.innerHTML;
+        groups[keyValue]['chatState']['inputText'] = inputText.value;
+    }
+
+}
+
+function restoreChatState(keyValue, chatAreaMainDiv, inputText, type) {
+    if (currentConversationType === 'user'){
+        if (!users[keyValue]['chatState']) {
+            users[keyValue]['chatState'] = { 'chat-area-main': '', 'inputText': '' };
+        }
+        chatAreaMainDiv.innerHTML = users[keyValue]['chatState']['chat-area-main'];
+        inputText.value = users[keyValue]['chatState']['inputText'];
+    } else {
+        if (!groups[keyValue]['chatState']) {
+            groups[keyValue]['chatState'] = { 'chat-area-main': '', 'inputText': '' };
+        }
+        chatAreaMainDiv.innerHTML = groups[keyValue]['chatState']['chat-area-main'];
+        inputText.value = groups[keyValue]['chatState']['inputText'];
+    }
+
+}
+
+function createGroupDiv(menuConversas, group, group_id, currentUser) {
+    const div = document.createElement('div');
+    div.classList.add('msg');
+    div.dataset.group = group_id;
+    div.innerHTML = `
+        <img class="msg-profile" src="${group.imageURL}" alt="" />
+        <div class="msg-detail">
+            <div class="msg-username">${group.name}</div>
+            <div class="group-action-buttons"></div>
+        </div>
+    `;
+    menuConversas.append(div);
+
+    initializeGroupChatStates(group_id, group);
+
+    div.addEventListener('click', () => {
+        handleGroupClick(div, group, group_id, currentUser);
+    });
+
+}
+
+
+function updateGroupConversations(menuConversas, conversas, data, currentUser) {
+    for (let group_id in data) {
+        let group = data[group_id];
+        let groupDiv = getChatDiv(conversas, group_id, 'group');
+        groups[group_id] = group;
+        
+        if (groupDiv) {
+            groups[group_id] = group;
+            if (lastSelectedGroupDiv === groupDiv && detailsIsOpened()){
+                showGroupDetails(group_id);
+                showEntryRequests(group_id);
+            }
+        } else {
+            createGroupDiv(menuConversas, group, group_id, currentUser);
+        }
+    }
+}
+
+function initializeGroupChatStates(group_id, group) {
+    groups[group_id]['chatState'] = { 'chat-area-main': '', 'inputText': '' };
+
+    if (group['messages']) {
+        group['messages'].forEach(message => {
+            const messageElement = createGroupMessageElement(message);
+            groups[group_id]['chatState']['chat-area-main'] += messageElement;
+        });
+    }
+}
+
+function createGroupMessageElement(message) {
+    let sender = message.sender;
+    let timestamp = message.timestamp;
+    let messageContent = message.message;
+    let messageClass = 'chat-msg';
+
+    if (sender !== currentUser) {
+        messageClass += ' owner';
+    }
+
+    return `
+        <div class="${messageClass}">
+            <div class="chat-msg-profile">
+                <img class="chat-msg-img" src="${users[sender]['profileImage']}" alt="" />
+                <div class="chat-msg-date">Mensagem enviada ${timestamp}</div>
+            </div>
+            <div class="chat-msg-content">
+                <div class="chat-msg-text">${messageContent}</div>
+            </div>
+        </div>
+    `;
+}
+
+function handleGroupClick(div, group, group_id, currentUser) {
+    hideDetails();
+
+    let chatAreaMainDiv = document.querySelector('.chat-area-main');
+    let inputText = document.getElementById('inputText');
+
+    const actionButtonsDiv = div.querySelector('.group-action-buttons');
+    actionButtonsDiv.innerHTML = '';
+
+    if (lastSelectedGroupDiv && currentConversationType === 'group') {
+        const previousGroup = lastSelectedGroupDiv.dataset.group;
+        saveCurrentChatState(previousGroup, chatAreaMainDiv, inputText);
+        lastSelectedGroupDiv.classList.remove('active');
+    }
+
+    setConversationType('group', group_id);
+    restoreChatState(group_id, chatAreaMainDiv, inputText);
+    document.getElementById('chat-area-title').innerText = group.name;
+    document.getElementById('chat-user-image').src = group.imageURL;
+
+    lastSelectedGroupDiv = div;
+    div.classList.add('active');
+
+    if (!group.users.includes(currentUser) && !group.requests.includes(currentUser)) {
+        const requestButton = document.createElement('button');
+        requestButton.classList.add('request-entry-button');
+        requestButton.innerText = 'Solicitar entrada';
+        requestButton.addEventListener('click', () => {
+            requestGroupEntry(group_id, currentUser);
+        });
+        actionButtonsDiv.appendChild(requestButton);
+    } else if (group.requests.includes(currentUser)) {
+        const requestStatus = document.createElement('div');
+        requestStatus.classList.add('request-status');
+        requestStatus.innerText = 'Solicitação pendente';
+        actionButtonsDiv.appendChild(requestStatus);
+    }
+
+    document.dispatchEvent(new CustomEvent('groupChatStarted', { detail: { groupName: group.name } }));
+}
+
+function requestGroupEntry(groupId, currentUser) {
     fetch('/api/request_group_entry', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            group_name: groupName,
+            group_id: groupId,
             username: currentUser
         })
     })
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                alert('Solicitação enviada com sucesso.');
+                let groupActionDiv = lastSelectedGroupDiv.querySelector('.group-action-buttons');
+                groupActionDiv.innerHTML = '<div className="request-status">Solicitação pendente</div>';
+                groups[groupId].requests.push(currentUser);
             } else {
                 alert(data.message);
             }
@@ -380,11 +581,31 @@ function requestGroupEntry(groupName, currentUser) {
         });
 }
 
+    // Função para mostrar os pedidos de entrada
+function showEntryRequests(group_id, justUpdate=false) {
+    toogleGroupEntrada(group_id, justUpdate);
+
+    let requests = groups[group_id].requests;
+    // Adiciona eventos de aceitar e recusar pedidos de entrada
+    const entryRequests = document.getElementById('detail-pedidos-group').querySelectorAll('.contact');
+    entryRequests.forEach(requestDiv => {
+        const acceptIcon = requestDiv.querySelector('#aceita');
+        const rejectIcon = requestDiv.querySelector('#remove');
+
+        acceptIcon.addEventListener('click', () => {
+            acceptRequest(group_id, requestDiv.querySelector('.contact-username').textContent);
+        });
+
+        rejectIcon.addEventListener('click', () => {
+            declineRequest(group_id, requestDiv.querySelector('.contact-username').textContent);
+        });
+    });
+}
 
 // Função para mostrar detalhes do grupo
-function showGroupDetails(group) {
+function showGroupDetails(group_id) {
+    let group = groups[group_id];
     const detailArea = document.getElementById('detail-area');
-    detailArea.style.display = 'block';  // Mostra a área de detalhes
 
     // Atualiza os detalhes do grupo
     const titleElement = detailArea.querySelector('.detail-title');
@@ -392,6 +613,10 @@ function showGroupDetails(group) {
 
     const subtitleElement = detailArea.querySelector('.detail-subtitle');
     subtitleElement.textContent = `Created by ${group.admin}`;
+
+    let imgProfileGroup = document.getElementById('detail-group-icon');
+    imgProfileGroup.src = group.imageURL;
+
 
     // Exibe a área de detalhes de pedidos de entrada
     const detailButtons = detailArea.querySelector('.detail-buttons');
@@ -404,7 +629,7 @@ function showGroupDetails(group) {
         Pedidos de entrada
     `;
     button.addEventListener('click', () => {
-        showEntryRequests(group.requests); // Mostra os pedidos de entrada ao clicar no botão
+        showEntryRequests(group_id); // Mostra os pedidos de entrada ao clicar no botão
     });
     detailButtons.innerHTML = ''; // Limpa botões anteriores (caso haja)
     detailButtons.appendChild(button);
@@ -446,47 +671,38 @@ function showGroupDetails(group) {
             contactDetail.appendChild(adminMessage);
         }
     });
+}
 
-    // Função para mostrar os pedidos de entrada
-    function showEntryRequests(requests) {
-        toogleGroupEntrada(group);
+function showUserDetails(username){
+    let user = users[username];
+    let detailArea = document.getElementById('detail-area');
 
-        // Adiciona eventos de aceitar e recusar pedidos de entrada
-        const entryRequests = document.getElementById('detail-pedidos-group').querySelectorAll('.contact');
-        entryRequests.forEach(requestDiv => {
-            const acceptIcon = requestDiv.querySelector('.contact-icon-aceita');
-            const rejectIcon = requestDiv.querySelector('.contact-icon-reject');
+    // Atualiza os detalhes do grupo
+    let titleElement = detailArea.querySelector('.detail-title');
+    titleElement.textContent = user.displayName;
 
-            acceptIcon.addEventListener('click', () => {
-                acceptRequest(group.name, requestDiv.querySelector('.contact-username').textContent);
-            });
+    let subtitleElement = detailArea.querySelector('.detail-subtitle');
+    subtitleElement.textContent = `${username}`;
 
-            rejectIcon.addEventListener('click', () => {
-                declineRequest(group.name, requestDiv.querySelector('.contact-username').textContent);
-            });
-        });
-    }
+    let imgProfileGroup = document.getElementById('detail-group-icon');
+    imgProfileGroup.src = user.profileImage;
 }
 
 // Função para aceitar pedido de entrada no grupo
-function acceptRequest(groupName, username) {
+function acceptRequest(groupId, username) {
     fetch('/api/accept_request', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            group_name: groupName,
+            group_id: groupId,
             username: username
         })
     })
         .then(response => response.json())
         .then(data => {
-            if (data.status === 'success') {
-                alert(data.message);
-                const updatedGroup = data.groups.find(g => g.name === groupName);
-                showGroupDetails(updatedGroup);
-            } else {
+            if (data.status !== 'success') {
                 alert(data.message);
             }
         })
@@ -497,24 +713,20 @@ function acceptRequest(groupName, username) {
 }
 
 // Função para recusar pedido de entrada no grupo
-function declineRequest(groupName, username) {
+function declineRequest(groupId, username) {
     fetch('/api/decline_request', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            group_name: groupName,
+            group_id: groupId,
             username: username
         })
     })
         .then(response => response.json())
         .then(data => {
-            if (data.status === 'success') {
-                alert(data.message);
-                const updatedGroup = data.groups.find(g => g.name === groupName);
-                showGroupDetails(updatedGroup);
-            } else {
+            if (data.status !== 'success') {
                 alert(data.message);
             }
         })
@@ -540,8 +752,8 @@ function removeUserFromGroup(groupName, username) {
         .then(data => {
             if (data.status === 'success') {
                 alert(data.message);
-                const updatedGroup = data.groups.find(g => g.name === groupName);
-                showGroupDetails(updatedGroup);
+                let group_id = data.group_id;
+                showGroupDetails(group_id);
             } else {
                 alert(data.message);
             }
@@ -553,30 +765,10 @@ function removeUserFromGroup(groupName, username) {
 }
 
 
-// Função para esconder detalhes do grupo
-function hideGroupDetails() {
-    const detailArea = document.getElementById('detail-area');
-    detailArea.style.display = 'none';  // Esconde a área de detalhes
-}
+
 
 // Função para iniciar ou entrar em uma sala privada ao clicar em uma conversa
-function startPrivateChat(currentUser, otherUser, socket) {
-    const room = `${currentUser}-${otherUser}`;
-    // Emitir evento 'join_room' para o servidor
-    console.log(socket);
-    socket.emit('join_room', {username: currentUser, room: room});
-    setConversationType('user', otherUser);
-    // Limpar a área de chat principal
-    clearChatAreaMain();
-    loadAndDisplayMessages(currentUser, otherUser);
 
-    // Emitir evento personalizado para indicar que um novo usuário foi selecionado
-    const event = new CustomEvent('privateChatStarted', {detail: {otherUser: otherUser}});
-    document.dispatchEvent(event);
-
-    // Retornar o outro usuário para o HTML
-    return otherUser;
-}
 
 // Função para limpar mensagens na área de chat principal
 function clearChatAreaMain() {
@@ -584,30 +776,17 @@ function clearChatAreaMain() {
     chatAreaMain.innerHTML = ''; // Limpa o conteúdo da área de chat principal
 }
 
-
-function startGroupChat(currentUser, groupName, socket) {
-    const room = `${groupName}`;
-
-    // Emitir evento 'join_room' para o servidor
-    socket.emit('join_group', {username: currentUser, group_name: groupName, room: room});
-    setConversationType('group', groupName)
-    // Limpar a área de chat principal
-    clearChatAreaMain();
-    loadAndDisplayGroupMessages(currentUser, groupName);
-
-    // Emitir evento personalizado para indicar que um novo grupo foi selecionado
-    const event = new CustomEvent('groupChatStarted', {detail: {groupName: groupName}});
-    document.dispatchEvent(event);
-
-    // Retornar o nome do grupo para o HTML
-    return groupName;
-}
-
 let currentConversationType = 'user'; // Inicialmente configurado para conversa com usuário
 let currentChatTarget = ''; // Variável para armazenar o nome do grupo ou usuário atual
 
 // Função para mudar o tipo de conversa
 function setConversationType(type, target) {
+    if (type === 'user' && lastSelectedGroupDiv){
+        lastSelectedGroupDiv.classList.remove('active');
+    } else if (type === 'group' && lastSelectedUserDiv) {
+        lastSelectedUserDiv.classList.remove('active');
+    }
+
     currentConversationType = type;
     currentChatTarget = target;
 }
@@ -638,7 +817,7 @@ function loadAndDisplayMessages(user1, user2) {
                     <div class="${messageClass}">
                         <div class="chat-msg-profile">
                             <img class="chat-msg-img" src="icone_usuario.png" alt="" /> <!-- Ícone do usuário ou grupo aqui -->
-                            <div class="chat-msg-date">Mensagem vista ${currentTime}</div>
+                            <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
                         </div>
                         <div class="chat-msg-content">
                             <div class="chat-msg-text">${msg}</div>
@@ -681,7 +860,7 @@ function loadAndDisplayGroupMessages(currentUser, groupName) {
                     <div class="${messageClass}">
                         <div class="chat-msg-profile">
                             <img class="chat-msg-img" src="icone_grupo.png" alt="" /> <!-- Ícone do grupo aqui -->
-                            <div class="chat-msg-date">Mensagem vista ${currentTime}</div>
+                            <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
                         </div>
                         <div class="chat-msg-content">
                             <div class="chat-msg-text">${msg}</div>
@@ -712,3 +891,33 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+function updateGroupRequests(data){
+    let group_id = data['id'];
+    let request_username = data['username'];
+    let user = users[request_username];
+
+    groups[group_id]['requests'].push(request_username);
+    if (lastSelectedGroupDiv && currentConversationType === 'group'){
+        const requestDiv = document.createElement('div');
+            requestDiv.classList.add('contact');
+            requestDiv.innerHTML = `
+                <img class="contact-profile"
+                    src="${user.profileImage}" alt="" />
+                <div class="contact-detail">
+                    <div class="contact-username">${request_username}</div>
+                </div>
+                <div class="contact-icon">
+                    <span id="aceita" class="material-symbols-outlined">
+                        check
+                    </span>
+                </div>
+                <div class="contact-icon">
+                    <span id="remove" class="material-symbols-outlined">
+                        do_not_disturb_on
+                    </span>
+                </div>
+            `;
+        document.getElementById('detail-pedidos-group').appendChild(requestDiv);
+    }
+}
