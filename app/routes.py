@@ -1,5 +1,9 @@
 import os
+import uuid
+
 from flask import render_template, request, jsonify, session, redirect, url_for, send_from_directory, send_file
+from werkzeug.utils import secure_filename
+
 from app import app, socketio, services, utils, connected_users, group_rooms
 from datetime import datetime
 
@@ -124,32 +128,41 @@ def logout():
     return redirect(url_for('index'))
 
 
+@app.route('/download/<uuid>', methods=['GET'])
+def download_file():
+    uuid = data.get('uuid')
+
+    filename = f"{uuid}.txt"  # Suponha que os arquivos foram salvos como UUID.txt
+
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+    if os.path.isfile(file_path):
+        # Retornar o arquivo para o cliente
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+    else:
+        return jsonify({'error': 'File not found'})
+
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    if 'username' in session or app.debug:
-        # Verifica se a requisição POST contém um arquivo na chave 'file'
-        if 'file' not in request.files:
-            return jsonify({'error': 'Nenhum arquivo enviado'}), 400
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'})
 
-        file = request.files['file']
+    file = request.files['file']
 
-        # Verifica se o nome do arquivo é válido
-        if file.filename == '':
-            return jsonify({'error': 'Nome de arquivo inválido'}), 400
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'})
 
-        # Garante que o nome do arquivo seja seguro para o sistema de arquivos
-        filename = utils.generate_filename(file.filename)
-        uuid = filename.split('.')[0]
+    _, file_extension = os.path.splitext(file.filename)
+    filename = str(uuid.uuid4()) + file_extension
 
-        # Registrando arquivo no banco de dados
-        services.create_file(uuid, file.filename, filename[filename.rindex('.'):])
+    # Salvar o arquivo no diretório de uploads
+    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+    services.register_private_message(session.get('user').get('id'), session.get('user').get('id'), 'Envio de Arquivo',
+                                      datetime.now(), filename)
 
-        # Retorna uma resposta de sucesso
-        return jsonify({'message': 'Arquivo enviado com sucesso', 'uuid': uuid}), 200
-    else:
-        return jsonify({'error': 'Acesso não autorizado'}), 401
+    return jsonify({'filename': filename})
 
 
 @app.route('/api/group', methods=['GET'])
@@ -494,7 +507,7 @@ def leave_group():
             return jsonify({'status': 'error', 'message': 'Grupo não encontrado'}), 404
 
         group_admin_username = group['gp_creator']['username']
-        gruop_type = group['gp_exclusion_type'] # 1 - exclusão, 2 - outro admin
+        gruop_type = group['gp_exclusion_type']  # 1 - exclusão, 2 - outro admin
         ghu = services.get_group_has_user(user_id, group_id)
         if not ghu:
             return jsonify({'status': 'error', 'message': 'Você não é membro deste grupo'}), 400
@@ -509,7 +522,8 @@ def leave_group():
                 if new_ghu:
                     services.remove_group_has_user(group_id, user_id)
                     socketio.emit('att_group')
-                    return jsonify({'status': 'success', 'message': 'Você saiu do grupo e passou a administração para outro usuário'}), 200
+                    return jsonify({'status': 'success',
+                                    'message': 'Você saiu do grupo e passou a administração para outro usuário'}), 200
                 else:
                     services.delete_group(group_id)
                     socketio.emit('att_group')
