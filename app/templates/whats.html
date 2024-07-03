@@ -12,6 +12,8 @@
     <script src="{{ url_for('static', filename='javascript/javascript.js') }}"></script>
     <script src="https://cdn.socket.io/4.3.1/socket.io.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 </head>
 
@@ -129,14 +131,21 @@
             </div>
         </div>
         <div class="chat-area">
+            <div class="hall-entrada" id="hallEntrada">
+                <img src="caminho/para/sua/imagem.jpg" alt="Imagem de boas-vindas">
+                <p>Bem-vindo ao Chat!</p>
+            </div>
+
             <div class="chat-area-header">
                 <div class="chat-header-contact-profile">
-                    <img class="msg-profile" id="chat-user-image"
-                         src="{{ user['profileImage'] }}"
-                         alt="">
+                    <img class="msg-profile" id="chat-user-image" src="{{ user['profileImage'] }}" alt="">
                 </div>
                 <div id="chat-area-title" class="chat-area-title">Chat</div>
+                <div class="chat-header-settings">
+                    <i class="fas fa-cog"></i>
+                </div>
             </div>
+
             <div class="chat-area-main">
             </div>
             <div class="chat-area-footer">
@@ -154,6 +163,7 @@
                 </span>
             </div>
         </div>
+
         <div id="detail-area">
             <div class="detail-area-header">
                 <div class="msg-profile group">

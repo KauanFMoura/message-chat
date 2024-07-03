@@ -343,7 +343,9 @@ function createUserDiv(menuConversas, user, username, currentUser) {
     initializeChatStates(username, user);
 
     div.addEventListener('click', () => {
+        document.getElementById('hallEntrada').style.display = 'none';
         handleUserClick(div, username, user.displayName);
+
     });
 }
 
@@ -455,6 +457,7 @@ function createGroupDiv(menuConversas, group, group_id, currentUser) {
     initializeGroupChatStates(group_id, group);
 
     div.addEventListener('click', () => {
+        document.getElementById('hallEntrada').style.display = 'none';
         handleGroupClick(div, group, group_id, currentUser);
     });
 
@@ -466,7 +469,7 @@ function updateGroupConversations(menuConversas, conversas, data, currentUser) {
         let group = data[group_id];
         let groupDiv = getChatDiv(conversas, group_id, 'group');
         groups[group_id] = group;
-        
+
         if (groupDiv) {
             groups[group_id] = group;
             if (lastSelectedGroupDiv === groupDiv && detailsIsOpened()){
