@@ -96,16 +96,19 @@ def register():
 
 @app.route('/whats')
 def chat():
-    if 'username' not in session or session['username'] not in connected_users.keys():
+    if 'username' not in session:
         username = session.pop('username', None)
         session.pop('user', None)
         if username and username in connected_users.keys():
             del connected_users[username]
         return redirect(url_for('index'))
 
-    username = session['username']
-    return render_template('whats.html', users=connected_users, user=connected_users[username], username=username)
-
+    try:
+        user = session['user']
+        username = session['username']
+        return render_template('whats.html', users=connected_users, user=user, username=username)
+    except Exception as e:
+        return redirect(url_for('index'))
 
 @app.route('/logout')
 def logout():
