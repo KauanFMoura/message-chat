@@ -463,7 +463,6 @@ function createGroupDiv(menuConversas, group, group_id, currentUser) {
 
 }
 
-
 function updateGroupConversations(menuConversas, conversas, data, currentUser) {
     for (let group_id in data) {
         let group = data[group_id];
@@ -584,7 +583,7 @@ function requestGroupEntry(groupId, currentUser) {
         });
 }
 
-    // Função para mostrar os pedidos de entrada
+// Função para mostrar os pedidos de entrada
 function showEntryRequests(group_id, justUpdate=false) {
     toogleGroupEntrada(group_id, justUpdate);
 
@@ -608,15 +607,12 @@ function showEntryRequests(group_id, justUpdate=false) {
 // Função para mostrar detalhes do grupo
 function showGroupDetails(group_id) {
     let group = groups[group_id];
-    const detailArea = document.getElementById('detail-area');
 
-    // Atualiza os detalhes do grupo
+    const detailArea = document.getElementById('detail-area');
     const titleElement = detailArea.querySelector('.detail-title');
     titleElement.textContent = group.name;
-
     const subtitleElement = detailArea.querySelector('.detail-subtitle');
     subtitleElement.textContent = `Created by ${group.admin}`;
-
     let imgProfileGroup = document.getElementById('detail-group-icon');
     imgProfileGroup.src = group.imageURL;
 
@@ -631,9 +627,11 @@ function showGroupDetails(group_id) {
         </span>
         Pedidos de entrada
     `;
+
     button.addEventListener('click', () => {
         showEntryRequests(group_id); // Mostra os pedidos de entrada ao clicar no botão
     });
+
     detailButtons.innerHTML = ''; // Limpa botões anteriores (caso haja)
     detailButtons.appendChild(button);
 
@@ -661,7 +659,7 @@ function showGroupDetails(group_id) {
             const removeIcon = memberDiv.querySelector('.contact-icon-remove');
             removeIcon.addEventListener('click', () => {
                 if (confirm(`Tem certeza que deseja remover ${user} do grupo ${group.name}?`)) {
-                    removeUserFromGroup(group.name, user);
+                    removeUserFromGroup(group_id, user);
                 }
             });
         } else {
@@ -740,24 +738,20 @@ function declineRequest(groupId, username) {
 }
 
 // Função para remover usuário do grupo (somente admin)
-function removeUserFromGroup(groupName, username) {
+function removeUserFromGroup(groupId, username) {
     fetch('/api/remove_user_from_group', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            group_name: groupName,
+            group_id: groupId,
             username: username
         })
     })
         .then(response => response.json())
         .then(data => {
-            if (data.status === 'success') {
-                alert(data.message);
-                let group_id = data.group_id;
-                showGroupDetails(group_id);
-            } else {
+            if (data.status !== 'success') {
                 alert(data.message);
             }
         })
@@ -766,8 +760,6 @@ function removeUserFromGroup(groupName, username) {
             alert('Erro ao remover usuário do grupo. Verifique o console para mais detalhes.');
         });
 }
-
-
 
 
 // Função para iniciar ou entrar em uma sala privada ao clicar em uma conversa
