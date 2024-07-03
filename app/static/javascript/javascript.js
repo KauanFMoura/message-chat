@@ -827,92 +827,6 @@ function setConversationType(type, target) {
     currentChatTarget = target;
 }
 
-function loadAndDisplayMessages(user1, user2) {
-    fetch(`/api/messages/${user1}/${user2}`)
-        .then(response => response.json())
-        .then(messages => {
-            // Garantir que messages seja uma array
-            if (!Array.isArray(messages)) {
-                messages = [];
-            }
-
-            // Limpa a área de chat principal
-            clearChatAreaMain();
-            // Exibe cada mensagem na área de chat
-            messages.forEach(message => {
-                const {sender, message: msg} = message;
-                const currentTime = new Date().toLocaleTimeString();
-                let messageClass = 'chat-msg';
-
-                // A mensagem deve ser classificada como 'owner' se o remetente for o usuário atual
-                if (sender !== currentChatTarget) {
-                    messageClass += ' owner';
-                }
-
-                const messageElement = `
-                    <div class="${messageClass}">
-                        <div class="chat-msg-profile">
-                            <img class="chat-msg-img" src="icone_usuario.png" alt="" /> <!-- Ícone do usuário ou grupo aqui -->
-                            <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
-                        </div>
-                        <div class="chat-msg-content">
-                            <div class="chat-msg-text">${msg}</div>
-                        </div>
-                    </div>
-                `;
-
-                chatAreaMain.insertAdjacentHTML('beforeend', messageElement);
-            });
-
-            // Rolagem automática para a parte inferior do chat
-            chatAreaMain.scrollTop = chatAreaMain.scrollHeight;
-        })
-        .catch(error => console.error('Error fetching messages:', error));
-}
-
-// Função para carregar e exibir mensagens de grupo
-function loadAndDisplayGroupMessages(currentUser, groupName) {
-    fetch(`/api/messages/group/${groupName}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Erro ao carregar mensagens do grupo');
-            }
-            return response.json();
-        })
-        .then(messages => {
-            // Limpa a área de chat principal
-            clearChatAreaMain();
-            // Exibe cada mensagem na área de chat
-            messages.forEach(message => {
-                const { sender, message: msg } = message;
-                const currentTime = new Date().toLocaleTimeString();
-                let messageClass = 'chat-msg';
-                // A mensagem deve ser classificada como 'owner' se o remetente for o usuário atual
-                if (sender === localStorage.getItem('username')) {
-                    messageClass += ' owner';
-                }
-
-                const messageElement = `
-                    <div class="${messageClass}">
-                        <div class="chat-msg-profile">
-                            <img class="chat-msg-img" src="icone_grupo.png" alt="" /> <!-- Ícone do grupo aqui -->
-                            <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
-                        </div>
-                        <div class="chat-msg-content">
-                            <div class="chat-msg-text">${msg}</div>
-                        </div>
-                    </div>
-                `;
-
-                chatAreaMain.insertAdjacentHTML('beforeend', messageElement);
-            });
-
-            // Rolagem automática para a parte inferior do chat
-            chatAreaMain.scrollTop = chatAreaMain.scrollHeight;
-        })
-        .catch(error => console.error('Erro ao carregar mensagens do grupo:', error));
-}
-
 // Evento para selecionar e enviar arquivos
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('file-upload-icon').addEventListener('click', function() {
@@ -923,7 +837,22 @@ document.addEventListener('DOMContentLoaded', function() {
         const file = event.target.files[0];
         if (file) {
             console.log('File selected:', file.name);
-            // Aqui você pode adicionar o código para enviar o arquivo
+
+            // Enviar o arquivo para o servidor via AJAX (usando Fetch API)
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('File uploaded successfully:', data.filename);
+            })
+            .catch(error => {
+                console.error('Error uploading file:', error);
+            });
         }
     });
 });
