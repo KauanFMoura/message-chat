@@ -393,7 +393,6 @@
         let time_sent = data.time_sent;
         let messageClass = 'chat-msg';
 
-        console.log('group_message', data);
 
         // Verifica se a mensagem é do grupo que está ativo
         if (sender === currentChatTarget) {
@@ -419,9 +418,10 @@
         }
         groups[group_id]['chatState']['chat-area-main'] += messageElement;
 
-        console.log('group_div', lastSelectedGroupDiv);
+
         // Se o chat do remetente está visível, atualize a área de chat
-        if (lastSelectedGroupDiv && lastSelectedGroupDiv.dataset.group === group_id) {
+        if (lastSelectedGroupDiv && lastSelectedGroupDiv.dataset.group == group_id) {
+
             let chatTarget = document.querySelector('.chat-area-main');
             chatTarget.innerHTML = groups[group_id]['chatState']['chat-area-main'];
 
