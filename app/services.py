@@ -3,6 +3,7 @@ from app import db, utils
 from sqlalchemy import or_, desc, func
 from sqlalchemy.orm import aliased
 from sqlalchemy.sql import and_, or_, select
+import random
 
 
 def create_user(usu_username, usu_password, usu_displayname, usu_profile_image_uuid, usu_status):
@@ -85,7 +86,7 @@ def get_user_group_messages(user_id):
     recent_messages_subquery = (
         db.session.query(GroupMessage.gm_id, GroupMessage.gm_group_id)
         .join(subquery, (GroupMessage.gm_group_id == subquery.c.gm_group_id) &
-                        (GroupMessage.gm_datetime == subquery.c.max_datetime))
+              (GroupMessage.gm_datetime == subquery.c.max_datetime))
         .subquery()
     )
 
@@ -133,8 +134,10 @@ def get_groups_with_users(gp_id=None):
         )
         .outerjoin(GroupHasUser, Group.gp_id == GroupHasUser.ghu_group_id)
         .outerjoin(User, Group.gp_creator == User.usu_id)  # Junta a tabela User para obter o nome de usuário do criador
-        .outerjoin(UserAlias, GroupHasUser.ghu_user_id == UserAlias.usu_id)  # Junta a tabela User para obter o nome de usuário do membro
-        .outerjoin(FileAlias, Group.gp_image_uuid == FileAlias.file_uuid)  # Junta a tabela File para obter detalhes do arquivo
+        .outerjoin(UserAlias,
+                   GroupHasUser.ghu_user_id == UserAlias.usu_id)  # Junta a tabela User para obter o nome de usuário do membro
+        .outerjoin(FileAlias, Group.gp_image_uuid == FileAlias.file_uuid)
+    # Junta a tabela File para obter detalhes do arquivo
     )
 
     if gp_id:
@@ -154,7 +157,7 @@ def get_groups_with_users(gp_id=None):
             'group_exclusion_type': group.gp_exclusion_type,
             'group_active': group.gp_active,
             'file_name': file_name,  # Nome do arquivo
-            'file_ext': file_ext,    # Extensão do arquivo
+            'file_ext': file_ext,  # Extensão do arquivo
             'group_has_user': {
                 'user_id': group_has_user.ghu_user_id if group_has_user else None,
                 'member_username': member_username,  # Inclui o nome de usuário do membro
@@ -353,3 +356,31 @@ def remove_group_has_user(ghu_group_id, ghu_user_id):
     db.session.delete(group_has_user)
     db.session.commit()
     return group_has_user
+
+
+def delete_group(group_id):
+    GroupHasUser.query.filter_by(ghu_group_id=group_id).delete()
+    group = Group.query.filter_by(gp_id=group_id).first()
+    if group:
+        db.session.delete(group)
+
+    db.session.commit()
+    return group
+
+
+def change_group_creator_randomly(group_id):
+    group = Group.query.filter_by(gp_id=group_id).first()
+    if not group:
+        return None
+
+    users_in_group = GroupHasUser.query.filter(GroupHasUser.ghu_group_id == group_id,
+                                               GroupHasUser.ghu_user_id != group.gp_creator).all()
+
+    if not users_in_group:
+        return None
+
+    new_creator = random.choice(users_in_group).ghu_user_id
+    group.gp_creator = new_creator
+    db.session.commit()
+
+    return group

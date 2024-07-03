@@ -641,6 +641,10 @@ function showGroupDetails(group_id) {
         showEntryRequests(group_id); // Mostra os pedidos de entrada ao clicar no botão
     });
 
+    buttonSair.addEventListener('click', () => {
+        leaveGroup(group_id);
+    });
+
     detailButtons.innerHTML = ''; // Limpa botões anteriores (caso haja)
     detailButtons.appendChild(buttonEntrada);
     detailButtons.appendChild(buttonSair);
@@ -683,6 +687,33 @@ function showGroupDetails(group_id) {
             contactDetail.appendChild(adminMessage);
         }
     });
+}
+
+function leaveGroup(group_id) {
+    fetch('/api/leave_group', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            group_id: group_id,
+            username: currentUser
+        })
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                alert('Você saiu do grupo com sucesso.');
+                hideDetails();
+                document.getElementById('conversas-grupos').removeChild(lastSelectedGroupDiv);
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao sair do grupo:', error);
+            alert('Erro ao sair do grupo. Verifique o console para mais detalhes.');
+        });
 }
 
 function showUserDetails(username){
