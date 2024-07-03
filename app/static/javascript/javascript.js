@@ -276,7 +276,7 @@ function getChatDiv(conversas, keyValue, type) {
 }
 
 let lastSelectedUserDiv = null;
-var lastSelectedGroupDiv = null;
+let lastSelectedGroupDiv = null;
 var users = {};
 var groups = {};
 
@@ -532,6 +532,7 @@ function handleGroupClick(div, group, group_id, currentUser) {
 
     setConversationType('group', group_id);
     restoreChatState(group_id, chatAreaMainDiv, inputText);
+
     document.getElementById('chat-area-title').innerText = group.name;
     document.getElementById('chat-user-image').src = group.imageURL;
 
