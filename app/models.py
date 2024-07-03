@@ -14,6 +14,9 @@ class User(db.Model):
     # Define a relação com a tabela File
     profile_image = db.relationship('File', backref='user', lazy=True)
 
+    def get_id(self):
+        return self.usu_id
+
 
 class PrivateMessage(db.Model):
     __tablename__ = 'private_message'

@@ -5,10 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/media-query.css') }}">
     <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"/>
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
     <script src="{{ url_for('static', filename='javascript/javascript.js') }}"></script>
     <script src="https://cdn.socket.io/4.3.1/socket.io.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
@@ -16,259 +16,255 @@
 </head>
 
 <body onresize="mudouTamanho()">
-<div class="app">
-    <div class="header">
-        <div class="logo" id="logo" onclick="toggleMenuConversa()">
-            <svg viewBox="0 0 513 513" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                <path
-                        d="M256.025.05C117.67-2.678 3.184 107.038.025 245.383a240.703 240.703 0 0085.333 182.613v73.387c0 5.891 4.776 10.667 10.667 10.667a10.67 10.67 0 005.653-1.621l59.456-37.141a264.142 264.142 0 0094.891 17.429c138.355 2.728 252.841-106.988 256-245.333C508.866 107.038 394.38-2.678 256.025.05z"/>
-                <path
+    <div class="app">
+        <div class="header">
+            <div class="logo" id="logo" onclick="toggleMenuConversa()">
+                <svg viewBox="0 0 513 513" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M256.025.05C117.67-2.678 3.184 107.038.025 245.383a240.703 240.703 0 0085.333 182.613v73.387c0 5.891 4.776 10.667 10.667 10.667a10.67 10.67 0 005.653-1.621l59.456-37.141a264.142 264.142 0 0094.891 17.429c138.355 2.728 252.841-106.988 256-245.333C508.866 107.038 394.38-2.678 256.025.05z" />
+                    <path
                         d="M330.518 131.099l-213.825 130.08c-7.387 4.494-5.74 15.711 2.656 17.97l72.009 19.374a9.88 9.88 0 007.703-1.094l32.882-20.003-10.113 37.136a9.88 9.88 0 001.083 7.704l38.561 63.826c4.488 7.427 15.726 5.936 18.003-2.425l65.764-241.49c2.337-8.582-7.092-15.72-14.723-11.078zM266.44 356.177l-24.415-40.411 15.544-57.074c2.336-8.581-7.093-15.719-14.723-11.078l-50.536 30.744-45.592-12.266L319.616 160.91 266.44 356.177z"
-                        fill="#fff"/>
-            </svg>
-        </div>
-        <div class="div-bar">
-        </div>
-        <div class="user-settings">
-            <div id="dark-light" class="dark-light" onclick="toggleButton()">
-                <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"
-                     stroke-linejoin="round">
-                    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+                        fill="#fff" />
                 </svg>
             </div>
-            <div class="user-profile-container">
-                <img class="user-profile"
-                     src="{{ user['profileImage'] }}"
-                     alt="User Profile">
+            <div class="div-bar">
+            </div>
+            <div class="user-settings">
+                <div id="dark-light" class="dark-light" onclick="toggleButton()">
+                    <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+                    </svg>
+                </div>
+                <div class="user-profile-container">
+                    <img class="user-profile" src="{{ user['profileImage'] }}" alt="User Profile">
 
-                <ul class="menu-logout">
-                    <li><a href="/logout">Logout</a></li>
-                </ul>
+                    <ul class="menu-logout">
+                        <li><a href="/logout">Logout</a></li>
+                    </ul>
+                </div>
             </div>
         </div>
-    </div>
-    <div class="wrapper">
-        <div id="menu-conversas" class="conversation-area">
-            <div class="search-bar">
-                <input type="text" placeholder="Search..."/>
-            </div>
-            <div class="buttons-conversa">
-                <div id="button-people" class="button-conversa-x">
-                    <div class="div-add-group group">
+        <div class="wrapper">
+            <div id="menu-conversas" class="conversation-area">
+                <div class="search-bar">
+                    <input type="text" placeholder="Search..." />
+                </div>
+                <div class="buttons-conversa">
+                    <div id="button-people" class="button-conversa-x">
+                        <div class="div-add-group group">
                             <span class="material-symbols-outlined">
                                 person
                             </span>
+                        </div>
+                        <div class="button-conversa-x-detail">
+                            <div class="button-conversa-x-username">Pessoas</div>
+                        </div>
                     </div>
-                    <div class="button-conversa-x-detail">
-                        <div class="button-conversa-x-username">Pessoas</div>
-                    </div>
-                </div>
-                <div id="button-groups" class="button-conversa-x">
-                    <div class="div-add-group group">
+                    <div id="button-groups" class="button-conversa-x">
+                        <div class="div-add-group group">
                             <span class="material-symbols-outlined">
                                 group
                             </span>
-                    </div>
-                    <div class="bbutton-conversa-x-detail">
-                        <div class="button-conversa-x-username">Grupos</div>
+                        </div>
+                        <div class="bbutton-conversa-x-detail">
+                            <div class="button-conversa-x-username">Grupos</div>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div id="conversas-pessoas" style="display: block;">
+                <div id="conversas-pessoas" style="display: block;">
 
-            </div>
-            <div id="conversas-grupos" style="display: none;">
+                </div>
+                <div id="conversas-grupos" style="display: none;">
 
+                </div>
+                <div class="div-add">
+                    <button class="add" onclick="toggleMenuContatos()"></button>
+                </div>
             </div>
-            <div class="div-add">
-                <button class="add" onclick="toggleMenuContatos()"></button>
+            <div id="menu-contact" class="conversation-area">
+                <div class="search-bar">
+                    <input type="text" placeholder="Search..." />
+                </div>
+                <div id="button-cancel" onclick="cancelSelection()">
+                    <div class="div-add-group group">
+                        <span class="material-symbols-outlined">
+                            cancel
+                        </span>
+                    </div>
+                    <div class="button-cancel-detail">
+                        <div class="button-cancel-username">Fechar</div>
+                    </div>
+                </div>
+                <div class="list-contact" onclick="toggleSelectionMode()">
+                    <div class="div-add-group group">
+                        <span id="add-group" class="material-symbols-outlined">
+                            add_circle
+                        </span>
+                    </div>
+                    <div class="list-contact-detail">
+                        <div class="list-contact-username">Adicionar novo grupo</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <!-- Formulário para criar novo grupo (inicialmente oculto) -->
+                    <form id="create-new-group-form">
+                        <input type="text" id="new-group-name" placeholder="Nome do grupo" required />
+                        <input type="text" id="new-group-description" placeholder="Descrição" required />
+                        <label for="exclusion_types" style="text-align: center;"></label>
+                        <select id="exclusion_types" name="exclusion_types" required>
+                            <option value="" disabled selected>Ação ao você sair:</option>
+                            <option value="1">Exclusão do grupo</option>
+                            <option value="2">Gerar novo administrador</option>
+                        </select>
+                        <div class="form-group-button" style="padding-top: 20px;">
+                            <button type="submit">Criar</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </div>
-        <div id="menu-contact" class="conversation-area">
-            <div class="search-bar">
-                <input type="text" placeholder="Search..."/>
-            </div>
-            <div id="button-cancel" onclick="cancelSelection()">
-                <div class="div-add-group group">
-                    <span class="material-symbols-outlined">
-                        cancel
+            <div class="chat-area">
+                <div class="chat-area-header">
+                    <div class="chat-header-contact-profile">
+                        <img class="msg-profile" id="chat-user-image" src="{{ user['profileImage'] }}" alt="">
+                    </div>
+                    <div id="chat-area-title" class="chat-area-title">Chat</div>
+                </div>
+                <div class="chat-area-main">
+                </div>
+                <div class="chat-area-footer">
+                    <svg id="file-upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                        class="feather feather-paperclip">
+                        <path
+                            d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48" />
+                    </svg>
+                    <input type="file" id="file-input">
+                    <input id="inputText" type="text" placeholder="Type something here..." />
+                    <span id="send-message" class="material-symbols-outlined">
+                        send
                     </span>
                 </div>
-                <div class="button-cancel-detail">
-                    <div class="button-cancel-username">Fechar</div>
-                </div>
             </div>
-            <div class="list-contact" onclick="toggleSelectionMode()">
-                <div class="div-add-group group">
-                    <span id="add-group" class="material-symbols-outlined">
-                        add_circle
-                    </span>
-                </div>
-                <div class="list-contact-detail">
-                    <div class="list-contact-username">Adicionar novo grupo</div>
-                </div>
-            </div>
-            <div class="form-group">
-                <!-- Formulário para criar novo grupo (inicialmente oculto) -->
-                <form id="create-new-group-form">
-                    <input type="text" id="new-group-name" placeholder="Nome do grupo" required/>
-                    <input type="text" id="new-group-description" placeholder="Descrição" required/>
-                    <label for="exclusion_types" style="text-align: center;"></label>
-                    <select id="exclusion_types" name="exclusion_types" required>
-                        <option value="" disabled selected>Ação ao você sair:</option>
-                        <option value="1">Exclusão do grupo</option>
-                        <option value="2">Gerar novo administrador</option>
-                    </select>
-                    <div class="form-group-button" style="padding-top: 20px;">
-                        <button type="submit">Criar</button>
+            <div id="detail-area">
+                <div class="detail-area-header">
+                    <div class="msg-profile group">
+                        <img id="detail-group-icon" class="msg-profile" src="" alt="">
                     </div>
-                </form>
-            </div>
-        </div>
-        <div class="chat-area">
-            <div class="chat-area-header">
-                <div class="chat-header-contact-profile">
-                    <img class="msg-profile" id="chat-user-image"
-                     src="{{ user['profileImage'] }}"
-                     alt="">
-                </div>
-                <div id="chat-area-title" class="chat-area-title">Chat</div>
-            </div>
-            <div class="chat-area-main">
-            </div>
-            <div class="chat-area-footer">
-                <svg id="file-upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
-                     class="feather feather-paperclip">
-                    <path
-                            d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
-                </svg>
-                <input type="file" id="file-input">
-                <input id="inputText" type="text" placeholder="Type something here..."/>
-                <span id="send-message" class="material-symbols-outlined">
-                    send
-                </span>
-            </div>
-        </div>
-        <div id="detail-area">
-            <div class="detail-area-header">
-                <div class="msg-profile group">
-                    <img id="detail-group-icon" class="msg-profile" src="" alt="">
-                </div>
-                <div class="detail-title">Trio Parada Dura</div>
-                <div class="detail-subtitle">Created by Aysenur, 1 May 2020</div>
-                <div class="detail-buttons">
-                    <button class="detail-button" onclick="toogleGroupEntrada()">
-                        <span class="material-symbols-outlined">
-                            list
-                        </span>
-                        Pedidos de entrada
-                    </button>
-                    <button id="button-close-admin" class="detail-button" onclick="toogleAdminSair()">
-                        <span class="material-symbols-outlined">
-                            logout
-                        </span>
-                        Sair do Grupo
-                    </button>
-                </div>
-            </div>
-            <div class="detail-changes">
-                <input type="text" placeholder="Search in Contact">
-            </div>
-            <div id="detail-group" class="detail-group">
-                <div class="contact online">
-                    <img class="contact-profile"
-                         src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3364143/download+%281%29.png" alt=""/>
-                    <div class="contact-detail">
-                        <div class="contact-username">Madison Jones</div>
+                    <div class="detail-title">Trio Parada Dura</div>
+                    <div class="detail-subtitle">Created by Aysenur, 1 May 2020</div>
+                    <div class="detail-buttons">
+                        <button class="detail-button" onclick="toogleGroupEntrada()">
+                            <span class="material-symbols-outlined">
+                                list
+                            </span>
+                            Pedidos de entrada
+                        </button>
+                        <button id="button-close-admin" class="detail-button" onclick="toogleAdminSair()">
+                            <span class="material-symbols-outlined">
+                                logout
+                            </span>
+                            Sair do Grupo
+                        </button>
                     </div>
-                    <div class="contact-icon">
+                </div>
+                <div class="detail-changes">
+                    <input type="text" placeholder="Search in Contact">
+                </div>
+                <div id="detail-group" class="detail-group">
+                    <div class="contact online">
+                        <img class="contact-profile"
+                            src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3364143/download+%281%29.png" alt="" />
+                        <div class="contact-detail">
+                            <div class="contact-username">Madison Jones</div>
+                        </div>
+                        <div class="contact-icon">
                             <span id="remove" class="material-symbols-outlined">
                                 do_not_disturb_on
                             </span>
+                        </div>
                     </div>
-                </div>
-                <div class="contact">
-                    <img class="contact-profile"
-                         src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3364143/download+%2812%29.png" alt=""/>
-                    <div class="contact-detail">
-                        <div class="contact-username">Miguel Cohen</div>
-                    </div>
-                    <div class="contact-icon">
+                    <div class="contact">
+                        <img class="contact-profile"
+                            src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3364143/download+%2812%29.png" alt="" />
+                        <div class="contact-detail">
+                            <div class="contact-username">Miguel Cohen</div>
+                        </div>
+                        <div class="contact-icon">
                             <span id="remove" class="material-symbols-outlined">
                                 do_not_disturb_on
                             </span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div id="detail-pedidos-group">
-                <p>Solicitações de Entrada</p>
+                <div id="detail-pedidos-group">
+                    <p>Solicitações de Entrada</p>
 
+                </div>
             </div>
         </div>
     </div>
-</div>
-</div>
-<script>
-    const socket = io({
-        // Opções de configuração para reconexão
-        reconnection: true, // Ativa a reconexão automática
-        reconnectionAttempts: Infinity, // Número máximo de tentativas de reconexão (Infinity para tentar indefinidamente)
-        reconnectionDelay: 1000, // Tempo (em ms) entre tentativas de reconexão
-        reconnectionDelayMax: 5000, // Tempo máximo (em ms) entre tentativas de reconexão
-        randomizationFactor: 0.5 // Fator de aleatoriedade para a duração do atraso de reconexão
-    });
-    const messageForm = document.querySelector('.chat-area-footer');
-    const chatAreaMain = document.querySelector('.chat-area-main');
-    const chatHeader = document.querySelector('.chat-area-header');
-    let lastSelectedUser = null;
-
-    document.addEventListener('privateChatStarted', function (event) {
-        lastSelectedUser = event.detail.otherUser;
-    });
-
-    const currentUser = "{{ username }}";
-
-    if (!currentUser) {
-        alert('Usuário não está logado');
-        window.location.href = '/';
-    }
-
-    socket.on('connect', () => {
-        console.log('Connected to server');
-    });
-
-    socket.on('group_created', (groups) => {
-        updateConversationMenu('conversas-grupos', groups, currentUser, socket);
-    });
-
-    socket.on('user_update', (users) => {
-        updateConversationMenu('conversas-pessoas', users, currentUser, socket);
-    });
-
-    socket.on('group_update', (groups) => {
-        updateConversationMenu('conversas-grupos', groups, currentUser, socket);
-    });
-
-    socket.on('new_entry_request', (data) => {
-        updateGroupRequests(data);
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-        // Emitir evento 'user_back_online' ao carregar a página
-        socket.emit('user_back_online');
-    });
-
-    // Função para enviar mensagem de grupo ao servidor
-    const sendGroupMessage = (message) => {
-        socket.emit('group_message', {
-            sender: currentUser,
-            group_id: currentChatTarget, // Variável que armazena o nome do grupo atual
-            message: message
+    </div>
+    <script>
+        const socket = io({
+            // Opções de configuração para reconexão
+            reconnection: true, // Ativa a reconexão automática
+            reconnectionAttempts: Infinity, // Número máximo de tentativas de reconexão (Infinity para tentar indefinidamente)
+            reconnectionDelay: 1000, // Tempo (em ms) entre tentativas de reconexão
+            reconnectionDelayMax: 5000, // Tempo máximo (em ms) entre tentativas de reconexão
+            randomizationFactor: 0.5 // Fator de aleatoriedade para a duração do atraso de reconexão
         });
-        const currentTime = new Date().toLocaleTimeString();
-        let messageClass = 'chat-msg owner';
-        const messageElement = `
+        const messageForm = document.querySelector('.chat-area-footer');
+        const chatAreaMain = document.querySelector('.chat-area-main');
+        const chatHeader = document.querySelector('.chat-area-header');
+        let lastSelectedUser = null;
+
+        document.addEventListener('privateChatStarted', function (event) {
+            lastSelectedUser = event.detail.otherUser;
+        });
+
+        const currentUser = "{{ username }}";
+
+        if (!currentUser) {
+            alert('Usuário não está logado');
+            window.location.href = '/';
+        }
+
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+
+        socket.on('group_created', (groups) => {
+            updateConversationMenu('conversas-grupos', groups, currentUser, socket);
+        });
+
+        socket.on('user_update', (users) => {
+            updateConversationMenu('conversas-pessoas', users, currentUser, socket);
+        });
+
+        socket.on('group_update', (groups) => {
+            updateConversationMenu('conversas-grupos', groups, currentUser, socket);
+        });
+
+        socket.on('new_entry_request', (data) => {
+            updateGroupRequests(data);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Emitir evento 'user_back_online' ao carregar a página
+            socket.emit('user_back_online');
+        });
+
+        // Função para enviar mensagem de grupo ao servidor
+        const sendGroupMessage = (message) => {
+            socket.emit('group_message', {
+                sender: currentUser,
+                group_id: currentChatTarget, // Variável que armazena o nome do grupo atual
+                message: message
+            });
+            const currentTime = new Date().toLocaleTimeString();
+            let messageClass = 'chat-msg owner';
+            const messageElement = `
         <div class="${messageClass}">
             <div class="chat-msg-profile">
                 <img class="chat-msg-img" src="icone_usuario.png" alt="" />
@@ -280,26 +276,26 @@
             </div>
         </div>
         `;
-        chatAreaMain.insertAdjacentHTML('beforeend', messageElement);
+            chatAreaMain.insertAdjacentHTML('beforeend', messageElement);
 
-        // Selecionar o último elemento adicionado e rolar para ele
-        const lastMessageElement = chatAreaMain.lastElementChild;
-        if (lastMessageElement) {
-            lastMessageElement.scrollIntoView({behavior: 'smooth'});
-        }
-    };
+            // Selecionar o último elemento adicionado e rolar para ele
+            const lastMessageElement = chatAreaMain.lastElementChild;
+            if (lastMessageElement) {
+                lastMessageElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        };
 
-    // Função para enviar mensagem ao servidor
-    const sendMessage = (message) => {
-        socket.emit('private_message', {
-            sender: currentUser,
-            receiver: lastSelectedUser,
-            message: message
-        });
+        // Função para enviar mensagem ao servidor
+        const sendMessage = (message) => {
+            socket.emit('private_message', {
+                sender: currentUser,
+                receiver: lastSelectedUser,
+                message: message
+            });
 
-        const currentTime = new Date().toLocaleTimeString();
-        let messageClass = 'chat-msg owner';
-        const messageElement = `
+            const currentTime = new Date().toLocaleTimeString();
+            let messageClass = 'chat-msg owner';
+            const messageElement = `
             <div class="${messageClass}">
                 <div class="chat-msg-profile">
                     <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
@@ -310,60 +306,60 @@
             </div>
         `;
 
-        // Adiciona a mensagem ao chat atual
-        let chatTarget = document.querySelector('.chat-area-main');
-        chatTarget.insertAdjacentHTML('beforeend', messageElement);
+            // Adiciona a mensagem ao chat atual
+            let chatTarget = document.querySelector('.chat-area-main');
+            chatTarget.insertAdjacentHTML('beforeend', messageElement);
 
-        // Rola para o final da conversa
-        const lastMessageElement = chatTarget.lastElementChild;
-        if (lastMessageElement) {
-            lastMessageElement.scrollIntoView({behavior: 'smooth'});
-        }
-
-        // Atualiza o estado do chat atual
-        if (!users[lastSelectedUser]['chatState']) {
-            users[lastSelectedUser]['chatState'] = { 'chat-area-main': '', 'inputText': '' };
-        }
-        users[lastSelectedUser]['chatState']['chat-area-main'] = chatTarget.innerHTML;
-    };
-
-
-    // Evento de envio de mensagem ao pressionar Enter
-    messageForm.addEventListener('keydown', (event) => {
-        if (event.key === 'Enter' && event.target.tagName === 'INPUT') {
-            event.preventDefault();
-            const messageInput = event.target;
-            const message = messageInput.value.trim();
-            if (message) {
-                if (currentConversationType === 'user') {
-                    // Enviar mensagem privada
-                    sendMessage(message);
-                } else if (currentConversationType === 'group') {
-                    // Enviar mensagem para o grupo
-                    sendGroupMessage(message);
-                }
-                messageInput.value = ''; // Limpa o campo de entrada após enviar a mensagem
+            // Rola para o final da conversa
+            const lastMessageElement = chatTarget.lastElementChild;
+            if (lastMessageElement) {
+                lastMessageElement.scrollIntoView({ behavior: 'smooth' });
             }
-        }
-    });
 
-    chatHeader.addEventListener('click', (event) => {
-        showDetails(currentConversationType, currentChatTarget);
-    });
+            // Atualiza o estado do chat atual
+            if (!users[lastSelectedUser]['chatState']) {
+                users[lastSelectedUser]['chatState'] = { 'chat-area-main': '', 'inputText': '' };
+            }
+            users[lastSelectedUser]['chatState']['chat-area-main'] = chatTarget.innerHTML;
+        };
 
-    // Evento para receber mensagens de grupo
-    socket.on('group_message', (data) => {
-        let message = data.message;
-        let sender = data.sender;
-        let group_id = data.group_id;
-        const currentTime = new Date().toLocaleTimeString();
-        let messageClass = 'chat-msg';
 
-        // Verifica se a mensagem é do grupo que está ativo
-        if (sender === currentChatTarget) {
-            let messageClass = 'chat-msg owner';
-        }
-        const messageElement = `
+        // Evento de envio de mensagem ao pressionar Enter
+        messageForm.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && event.target.tagName === 'INPUT') {
+                event.preventDefault();
+                const messageInput = event.target;
+                const message = messageInput.value.trim();
+                if (message) {
+                    if (currentConversationType === 'user') {
+                        // Enviar mensagem privada
+                        sendMessage(message);
+                    } else if (currentConversationType === 'group') {
+                        // Enviar mensagem para o grupo
+                        sendGroupMessage(message);
+                    }
+                    messageInput.value = ''; // Limpa o campo de entrada após enviar a mensagem
+                }
+            }
+        });
+
+        chatHeader.addEventListener('click', (event) => {
+            showDetails(currentConversationType, currentChatTarget);
+        });
+
+        // Evento para receber mensagens de grupo
+        socket.on('group_message', (data) => {
+            let message = data.message;
+            let sender = data.sender;
+            let group_id = data.group_id;
+            const currentTime = new Date().toLocaleTimeString();
+            let messageClass = 'chat-msg';
+
+            // Verifica se a mensagem é do grupo que está ativo
+            if (sender === currentChatTarget) {
+                messageClass += ' owner';
+            }
+            const messageElement = `
         <div class="${messageClass}">
             <div class="chat-msg-profile">
                 <img class="chat-msg-img" src="${users[sender].profileImage}" alt="" />
@@ -377,32 +373,33 @@
         `;
 
 
-        // Atualiza o estado do chat atual
-        if (!groups[group_id]['chatState']) {
-            groups[group_id]['chatState'] = { 'chat-area-main': '', 'inputText': '' };
-        }
-        groups[group_id]['chatState']['chat-area-main'] += messageElement;
-
-        // Se o chat do remetente está visível, atualize a área de chat
-        if (lastSelectedGroupDiv && lastSelectedGroupDiv.dataset.group === group_id) {
-            let chatTarget = document.querySelector('.chat-area-main');
-            chatTarget.innerHTML = groups[group_id]['chatState']['chat-area-main'];
-
-            // Rola para o final da conversa
-            const lastMessageElement = chatTarget.lastElementChild;
-            if (lastMessageElement) {
-                lastMessageElement.scrollIntoView({behavior: 'smooth'});
+            // Atualiza o estado do chat atual
+            if (!groups[group_id]['chatState']) {
+                groups[group_id]['chatState'] = { 'chat-area-main': '', 'inputText': '' };
             }
-        }
-    });
+            groups[group_id]['chatState']['chat-area-main'] += messageElement;
 
-    // Evento para receber mensagens privadas
-    socket.on('private_message', (data) => {
-        const { sender, message } = data;
-        const currentTime = new Date().toLocaleTimeString();
-        let messageClass = 'chat-msg';
+            // Se o chat do remetente está visível, atualize a área de chat
+            if (lastSelectedGroupDiv && lastSelectedGroupDiv.dataset.group === group_id) {
+                let chatTarget = document.querySelector('.chat-area-main');
+                chatTarget.innerHTML = groups[group_id]['chatState']['chat-area-main'];
 
-        const messageElement = `
+                // Rola para o final da conversa
+                const lastMessageElement = chatTarget.lastElementChild;
+                if (lastMessageElement) {
+                    lastMessageElement.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        });
+
+        // Evento para receber mensagens privadas
+        socket.on('private_message', (data) => {
+            let sender = data.sender;
+            let message = data.message;
+            let currentTime = new Date().toLocaleTimeString();
+            let messageClass = 'chat-msg';
+
+            const messageElement = `
             <div class="${messageClass}">
                 <div class="chat-msg-profile">
                     <div class="chat-msg-date">Message seen ${currentTime}</div>
@@ -413,107 +410,122 @@
             </div>
         `;
 
-        if (!users[sender]['chatState']) {
-            users[sender]['chatState'] = { 'chat-area-main': '', 'inputText': '' };
-        }
-        users[sender]['chatState']['chat-area-main'] += messageElement;
-        console.log(users[sender]['chatState']['chat-area-main']);
-        // Se o chat do remetente está visível, atualize a área de chat
-        if (lastSelectedUserDiv && lastSelectedUserDiv.dataset.user === sender) {
-            let chatTarget = document.querySelector('.chat-area-main');
-            chatTarget.innerHTML = users[sender]['']['chat-area-main'];
-
-            // Rola para o final da conversa
-            const lastMessageElement = chatTarget.lastElementChild;
-            if (lastMessageElement) {
-                lastMessageElement.scrollIntoView({behavior: 'smooth'});
+            if (!users[sender]['chatState']) {
+                users[sender]['chatState'] = { 'chat-area-main': '', 'inputText': '' };
             }
+            users[sender]['chatState']['chat-area-main'] += messageElement;
+            console.log(users[sender]['chatState']['chat-area-main']);
+            // Se o chat do remetente está visível, atualize a área de chat
+            if (lastSelectedUserDiv && lastSelectedUserDiv.dataset.user === sender) {
+                let chatTarget = document.querySelector('.chat-area-main');
+                chatTarget.innerHTML = users[sender]['chatState']['chat-area-main'];
+
+                // Rola para o final da conversa
+                const lastMessageElement = chatTarget.lastElementChild;
+                if (lastMessageElement) {
+                    lastMessageElement.scrollIntoView({ behavior: 'smooth' });
+                }
+            }
+        });
+
+
+        function showLoadingOverlay() {
+            document.getElementById('loading-overlay').style.display = 'flex';
         }
-    });
 
+        function hideLoadingOverlay() {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
 
-    // Requisição para obter a lista de pessoas do servidor
-    function getAndUpdateGrupos(){
-        fetch('/api/groups', {
+        // Requisição para obter a lista de pessoas do servidor
+        function getAndUpdateGrupos() {
+            fetch('/api/groups', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
                 }
             })
-                    .then(response => response.json())
-                    .then(data => {
-                        updateConversationMenu('conversas-grupos', data, currentUser, socket);
-                    })
-                    .catch(error => {
-                        console.error('Erro ao obter lista de grupos:', error);
-                    });
-    }
-
-    function getAndUpdatePessoas(){
-        fetch('/api/people', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log(data);
-                        updateConversationMenu('conversas-pessoas', data, currentUser, socket);
-                    })
-                    .catch(error => {
-                        console.error('Erro ao obter lista de grupos:', error);
-                    });
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        // Evento de clique para o botão de Pessoas
-        const buttonPeople = document.getElementById('button-people');
-        buttonPeople.addEventListener('click', function () {
-            document.getElementById('conversas-pessoas').style.display = 'block';
-            document.getElementById('conversas-grupos').style.display = 'none';
-        });
-        getAndUpdatePessoas();
-
-        // Evento de clique para o botão de Grupos
-        const buttonGroups = document.getElementById('button-groups');
-        buttonGroups.addEventListener('click', function () {
-            document.getElementById('conversas-pessoas').style.display = 'none';
-            document.getElementById('conversas-grupos').style.display = 'block';
-        });
-        getAndUpdateGrupos()
-    });
-
-    document.addEventListener('DOMContentLoaded', function () {
-        // Mostrar formulário para criar novo grupo ao clicar em "Adicionar novo grupo"
-        const addGroupButton = document.querySelector('.list-contact');
-        const createGroupForm = document.getElementById('create-new-group-form');
-
-        addGroupButton.addEventListener('click', function () {
-            createGroupForm.style.display = 'block';
-        });
-
-        // Evento de submit do formulário para criar novo grupo
-        createGroupForm.addEventListener('submit', function (event) {
-            event.preventDefault();
-
-            const groupName = document.getElementById('new-group-name').value.trim();
-            const groupDescription = document.getElementById('new-group-description').value.trim();
-            const exclusionType = document.getElementById('exclusion_types').value;
-            if (groupName) {
-                const data = {
-                    name: groupName,
-                    description: groupDescription,
-                    exclusionType: exclusionType
-                };
-
-                fetch('/api/create_group', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
+                .then(response => response.json())
+                .then(data => {
+                    updateConversationMenu('conversas-grupos', data, currentUser, socket);
                 })
+                .catch(error => {
+                    console.error('Erro ao obter lista de grupos:', error);
+                })
+        }
+
+        function getAndUpdatePessoas() {
+            fetch('/api/people', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    updateConversationMenu('conversas-pessoas', data, currentUser, socket);
+                })
+                .catch(error => {
+                    console.error('Erro ao obter lista de grupos:', error);
+                })
+        }
+
+        function initilize() {
+            showLoadingOverlay();
+            getAndUpdateGrupos();
+            getAndUpdatePessoas();
+            hideLoadingOverlay();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Evento de clique para o botão de Pessoas
+            const buttonPeople = document.getElementById('button-people');
+            buttonPeople.addEventListener('click', function () {
+                document.getElementById('conversas-pessoas').style.display = 'block';
+                document.getElementById('conversas-grupos').style.display = 'none';
+            });
+
+            // Evento de clique para o botão de Grupos
+            const buttonGroups = document.getElementById('button-groups');
+            buttonGroups.addEventListener('click', function () {
+                document.getElementById('conversas-pessoas').style.display = 'none';
+                document.getElementById('conversas-grupos').style.display = 'block';
+            });
+        });
+
+        initilize();
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Mostrar formulário para criar novo grupo ao clicar em "Adicionar novo grupo"
+            const addGroupButton = document.querySelector('.list-contact');
+            const createGroupForm = document.getElementById('create-new-group-form');
+
+            addGroupButton.addEventListener('click', function () {
+                createGroupForm.style.display = 'block';
+            });
+
+            // Evento de submit do formulário para criar novo grupo
+            createGroupForm.addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                const groupName = document.getElementById('new-group-name').value.trim();
+                const groupDescription = document.getElementById('new-group-description').value.trim();
+                const exclusionType = document.getElementById('exclusion_types').value;
+                if (groupName) {
+                    const data = {
+                        name: groupName,
+                        description: groupDescription,
+                        exclusionType: exclusionType
+                    };
+
+                    fetch('/api/create_group', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(data)
+                    })
                         .then(response => response.json())
                         .then(result => {
                             if (result.status === 'success') {
@@ -528,11 +540,12 @@
                             console.error('Erro ao criar grupo:', error);
                             alert('Erro ao criar grupo. Nome já Existente ou Conexação Perdida.');
                         });
-            } else {
-                alert('Por favor, insira um nome para o grupo.');
-            }
+                } else {
+                    alert('Por favor, insira um nome para o grupo.');
+                }
+            });
         });
-    });
-</script>
+    </script>
 </body>
+
 </html>
