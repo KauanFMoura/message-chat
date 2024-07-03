@@ -281,16 +281,20 @@
     document.addEventListener('DOMContentLoaded', () => {
         // Emitir evento 'user_back_online' ao carregar a página
         socket.emit('user_back_online');
+
     });
 
     // Função para enviar mensagem de grupo ao servidor
     const sendGroupMessage = (message) => {
+        let currentTime = new Date().toLocaleTimeString();
         socket.emit('group_message', {
             sender: currentUser,
             group_id: currentChatTarget, // Variável que armazena o nome do grupo atual
-            message: message
+            message: message,
+            time_sent: currentTime
         });
-        const currentTime = new Date().toLocaleTimeString();
+
+
         let messageClass = 'chat-msg owner';
         const messageElement = `
         <div class="${messageClass}">
@@ -304,24 +308,30 @@
             </div>
         </div>
         `;
-        chatAreaMain.insertAdjacentHTML('beforeend', messageElement);
+
+        // Adiciona a mensagem ao chat atual
+        let chatTarget = document.querySelector('.chat-area-main');
+        chatTarget.insertAdjacentHTML('beforeend', messageElement);
 
         // Selecionar o último elemento adicionado e rolar para ele
         const lastMessageElement = chatAreaMain.lastElementChild;
         if (lastMessageElement) {
             lastMessageElement.scrollIntoView({behavior: 'smooth'});
         }
+        groups[currentChatTarget]['chatState']['chat-area-main'] = chatTarget.innerHTML;
+        
     };
 
     // Função para enviar mensagem ao servidor
     const sendMessage = (message) => {
+        let currentTime = new Date().toLocaleTimeString();
         socket.emit('private_message', {
             sender: currentUser,
             receiver: lastSelectedUser,
-            message: message
+            message: message,
+            time_sent: currentTime
         });
 
-        const currentTime = new Date().toLocaleTimeString();
         let messageClass = 'chat-msg owner';
         const messageElement = `
             <div class="${messageClass}">
@@ -380,18 +390,20 @@
         let message = data.message;
         let sender = data.sender;
         let group_id = data.group_id;
-        const currentTime = new Date().toLocaleTimeString();
+        let time_sent = data.time_sent;
         let messageClass = 'chat-msg';
+
+        console.log('group_message', data);
 
         // Verifica se a mensagem é do grupo que está ativo
         if (sender === currentChatTarget) {
-            let messageClass = 'chat-msg owner';
+            messageClass += ' owner';
         }
         const messageElement = `
         <div class="${messageClass}">
             <div class="chat-msg-profile">
                 <img class="chat-msg-img" src="${users[sender].profileImage}" alt="" />
-                <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
+                <div class="chat-msg-date">Mensagem enviada ${time_sent}</div>
             </div>
             <div class="chat-msg-user">Nome do Usuário</div>
             <div class="chat-msg-content">
@@ -407,6 +419,7 @@
         }
         groups[group_id]['chatState']['chat-area-main'] += messageElement;
 
+        console.log('group_div', lastSelectedGroupDiv);
         // Se o chat do remetente está visível, atualize a área de chat
         if (lastSelectedGroupDiv && lastSelectedGroupDiv.dataset.group === group_id) {
             let chatTarget = document.querySelector('.chat-area-main');
@@ -422,14 +435,15 @@
 
     // Evento para receber mensagens privadas
     socket.on('private_message', (data) => {
-        const {sender, message} = data;
-        const currentTime = new Date().toLocaleTimeString();
+        let message = data.message
+        let sender = data.sender
+        const time_sent = data.time_sent
         let messageClass = 'chat-msg';
 
         const messageElement = `
             <div class="${messageClass}">
                 <div class="chat-msg-profile">
-                    <div class="chat-msg-date">Message seen ${currentTime}</div>
+                    <div class="chat-msg-date">Message seen ${time_sent}</div>
                 </div>
                 <div class="chat-msg-content">
                     <div class="chat-msg-text">${message}</div>
@@ -441,7 +455,7 @@
             users[sender]['chatState'] = {'chat-area-main': '', 'inputText': ''};
         }
         users[sender]['chatState']['chat-area-main'] += messageElement;
-        console.log(users[sender]['chatState']['chat-area-main']);
+
         // Se o chat do remetente está visível, atualize a área de chat
         if (lastSelectedUserDiv && lastSelectedUserDiv.dataset.user === sender) {
             let chatTarget = document.querySelector('.chat-area-main');
@@ -493,7 +507,6 @@
         })
             .then(response => response.json())
             .then(data => {
-                console.log(data);
                 updateConversationMenu('conversas-pessoas', data, currentUser, socket);
             })
             .catch(error => {
@@ -525,8 +538,7 @@
         hideLoadingOverlay();
     }
 
-    initializeChats()
-
+    initializeChats();
     document.addEventListener('DOMContentLoaded', function () {
         // Mostrar formulário para criar novo grupo ao clicar em "Adicionar novo grupo"
         const addGroupButton = document.querySelector('.list-contact');

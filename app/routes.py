@@ -29,19 +29,7 @@ def login():
                 profileImageURL = app.config['DEFAULT_PROFILE_IMAGE']
 
             ghus = services.get_user_groups(user.usu_id)
-            groups = []
-            existing_rooms = group_rooms.keys()
-            if ghus:
-                for ghu in ghus:
-                    group_id = ghu.ghu_group_id
-                    groups.append(group_id)
-
-                    # Adicionando usuário a room
-                    if group_id in existing_rooms:
-                        group_rooms[group_id].add(username)
-                    else:
-                        # Criando a room e adicionando o usuário, caso ela não exista
-                        group_rooms[group_id] = [username]
+            groups = [ghu.ghu_group_id for ghu in ghus]
 
             connected_users[username] = {
                 "id": user.usu_id,
@@ -106,9 +94,24 @@ def chat():
     try:
         user = session['user']
         username = session['username']
-        return render_template('whats.html', users=connected_users, user=user, username=username)
+        if username not in connected_users.keys():
+            connected_users[username] = user
+
+        return render_template('whats.html', user=user, username=username)
     except Exception as e:
         return redirect(url_for('index'))
+
+
+@app.route('/load_data')
+def load_data():
+    if 'username' not in session:
+        return jsonify({'error': 'Unauthorized access'}), 401
+
+    users = get_people(True)
+    groups = get_groups(True)
+
+    return jsonify({'users': users, 'groups': groups}), 200
+
 
 @app.route('/logout')
 def logout():
@@ -189,7 +192,7 @@ def get_group(group_id=None):
 
 
 @app.route('/api/people', methods=['GET'])
-def get_people():
+def get_people(server_request=False):
     if 'username' not in session:
         return jsonify({'error': 'Unauthorized access'}), 401
     users = services.get_all_users(True)
@@ -215,7 +218,8 @@ def get_people():
             "online": isOnline,
             "messages": messages
         }
-
+    if server_request:
+        return users_dict
     return jsonify(users_dict), 200
 
 
@@ -226,7 +230,7 @@ def uploaded_file(filename):
 
 
 @app.route('/api/groups', methods=['GET'])
-def get_groups():
+def get_groups(server_request=False):
     if 'username' not in session:
         return jsonify({'error': 'Unauthorized access'}), 401
 
@@ -262,7 +266,8 @@ def get_groups():
                 groups[group_id]['users'].append(user['member_username'])
             elif user['member_username'] not in groups[group_id]['requests']:
                 groups[group_id]['requests'].append(user['member_username'])
-
+    if server_request:
+        return groups
     return jsonify(groups), 200
 
 

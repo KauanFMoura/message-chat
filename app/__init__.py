@@ -40,25 +40,31 @@ class ObservableDict(dict):
 
     def __setitem__(self, key, value):
         super().__setitem__(key, value)
+        print('Setted Item')
         self.updated_callback(key)
 
     def __delitem__(self, key):
         super().__delitem__(key)
         self.deleted_callback(key)
 
+    def call_update(self, key):
+        self.updated_callback(key)
+
     def set_updated_callback(self, callback):
         self.updated_callback = callback
 
     def set_deleted_callback(self, callback):
-        self.updated_callback = callback
+        self.deleted_callback = callback
 
 
 def updated_callback(key):
     for group in connected_users[key]['groups']:
-        if group in group_rooms.keys() and key not in group_rooms[group]:
-            group_rooms[group].add(key)
-            socketio.emit('group_status', {'group': group, 'users': list(group_rooms[group])}, broadcast=True)
-    socketio.emit('user_update', connected_users)
+        if group not in group_rooms.keys():
+            group_rooms[group] = [key]
+        else:
+            if key not in group_rooms[group]:
+                group_rooms[group].append(key)
+    print(f"Update callback:\nGroup Rooms:{group_rooms}\nConnected Users:{connected_users}\n")
 
 
 def deleted_callback(key):
@@ -76,12 +82,15 @@ def deleted_callback(key):
         if len(group_rooms[group]) == 0:
             del group_rooms[group]
 
+    print(f"Delete callback:\nGroup Rooms:{group_rooms}\nConnected Users:{connected_users}\n")
+
     socketio.emit('user_update', connected_users)
 
 
 # Lista de usuários conectados
 connected_users = ObservableDict({})
 connected_users.set_updated_callback(updated_callback)
+
 connected_users.set_deleted_callback(deleted_callback)
 
 

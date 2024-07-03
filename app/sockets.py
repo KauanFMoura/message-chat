@@ -31,6 +31,9 @@ def handle_reconnect():
     username = session.get('username')
     if username in connected_users.keys():
         connected_users[username]['sid'] = sid
+    else:
+        connected_users[username] = session.get('user')
+        connected_users[username]['sid'] = sid
     print(f'Cliente reconectado: {sid}')
 
 
@@ -40,11 +43,9 @@ def handle_user_back_online():
     if username:
         if username not in connected_users.keys():
             connected_users[username](session.get('user'))
-        print(f'Usuários conectados: {connected_users}')
         print(f'{username} is back online')
         emit('user_update', connected_users, broadcast=True)
     else:
-
         print('Unauthorized access')  # Lida com o caso em que o usuário não está autenticado corretamente
 
 
@@ -53,6 +54,7 @@ def handle_message(data):
     sender = data['sender']
     receiver = data['receiver']
     message = data['message']
+    time_sent = data['time_sent']
     sid_receiver = connected_users.get(receiver, {}).get('sid')
 
     if receiver in connected_users.keys():
@@ -66,19 +68,19 @@ def handle_message(data):
         sender_id = services.get_user_by_username(sender).usu_id
 
     if sid_receiver:
-        print(f'{sender} sent a private message to {receiver}')
         emit('private_message', {'sender': sender, 'message': message}, to=sid_receiver)
 
+    print(f'{sender} sent a private message to {receiver}')
     # Registrando mensagem no banco de dados
-    services.register_private_message(sender_id, receiver_id, message, datetime.now(), None)
+    services.register_private_message(sender_id, receiver_id, message, time_sent, None)
 
 
 @socketio.on('group_message')
 def handle_group_message(data):
     sender = data['sender']
-    group_id = data['group_id']
+    group_id = int(data['group_id'])
     message = data['message']
-    timestamp = datetime.now()
+    time_sent = data['time_sent']
 
     # Verifica se o grupo já existe
     if group_id not in group_rooms.keys():
@@ -90,6 +92,6 @@ def handle_group_message(data):
     room_list = [connected_users[user]['sid'] for user in group_rooms[group_id]]
     # Emite a mensagem para o grupo
     print(f'{sender} sent a group message to {group_id}')
-    emit('group_message', {'sender': sender, 'message': message, 'group_id': group_id, "timestamp": timestamp}, room=room_list)
+    emit('group_message', {'sender': sender, 'message': message, 'group_id': group_id, "time_sent": time_sent}, room=room_list)
 
 
