@@ -445,7 +445,7 @@
         // Se o chat do remetente está visível, atualize a área de chat
         if (lastSelectedUserDiv && lastSelectedUserDiv.dataset.user === sender) {
             let chatTarget = document.querySelector('.chat-area-main');
-            chatTarget.innerHTML = users[sender]['']['chat-area-main'];
+            chatTarget.innerHTML = users[sender]['chatState']['chat-area-main'];
 
             // Rola para o final da conversa
             const lastMessageElement = chatTarget.lastElementChild;
@@ -465,8 +465,6 @@
 
     // Requisição para obter a lista de pessoas do servidor
     function getAndUpdateGrupos() {
-        showLoadingOverlay(); // Mostrar o overlay de carregamento
-
         fetch('/api/groups', {
             method: 'GET',
             headers: {
@@ -480,14 +478,9 @@
             .catch(error => {
                 console.error('Erro ao obter lista de grupos:', error);
             })
-            .finally(() => {
-                hideLoadingOverlay(); // Ocultar o overlay de carregamento
-            });
     }
 
     function getAndUpdatePessoas() {
-        showLoadingOverlay(); // Mostrar o overlay de carregamento
-
         fetch('/api/people', {
             method: 'GET',
             headers: {
@@ -502,9 +495,6 @@
             .catch(error => {
                 console.error('Erro ao obter lista de grupos:', error);
             })
-            .finally(() => {
-                hideLoadingOverlay(); // Ocultar o overlay de carregamento
-            });
     }
 
 
@@ -515,7 +505,6 @@
             document.getElementById('conversas-pessoas').style.display = 'block';
             document.getElementById('conversas-grupos').style.display = 'none';
         });
-        getAndUpdatePessoas();
 
         // Evento de clique para o botão de Grupos
         const buttonGroups = document.getElementById('button-groups');
@@ -523,8 +512,16 @@
             document.getElementById('conversas-pessoas').style.display = 'none';
             document.getElementById('conversas-grupos').style.display = 'block';
         });
-        getAndUpdateGrupos()
     });
+
+    function initializeChats() {
+        showLoadingOverlay();
+        getAndUpdatePessoas();
+        getAndUpdateGrupos();
+        hideLoadingOverlay();
+    }
+
+    initializeChats()
 
     document.addEventListener('DOMContentLoaded', function () {
         // Mostrar formulário para criar novo grupo ao clicar em "Adicionar novo grupo"
