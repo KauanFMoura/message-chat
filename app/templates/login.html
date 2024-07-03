@@ -2,8 +2,7 @@
 <html>
 <head>
     <title>Chat UTFPR - Login e Cadastro</title>
-    <link  href="/path/to/cropper.css" rel="stylesheet">
-    <script src="/path/to/cropper.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -47,6 +46,20 @@
             margin-top: 10px;
             color: red;
         }
+        /* Overlay para fundo desfocado */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 1000;
+        }
+        .cropper-container {
+            z-index: 2000; /* Ajuste para que o Cropper fique acima do overlay */
+        }
     </style>
 </head>
 <body>
@@ -65,12 +78,79 @@
         <input type="text" id="register-username" placeholder="Username" required>
         <input type="password" id="register-password" placeholder="Password" required>
         <input type="password" id="register-confirm-password" placeholder="Confirm Password" required>
+        <input type="file" id="upload-image" accept="image/*">
+        <input type="hidden" id="cropped-image-url" name="croppedImageURL">
         <button id="register-button">Register</button>
         <p class="message" id="register-message"></p>
         <p>Already have an account? <a href="#" id="show-login">Login</a></p>
     </div>
 
+    <!-- Overlay para fundo desfocado -->
+    <div class="overlay" id="overlay" style="flex-direction: column; align-items: center; ">
+        <div class="cropper-container">
+            <div style="width: 50vw; height: 50vh">
+                <img id="image" src="" alt="Imagem para Cropper" style="display:none; width: 50vw; height: 50vh">
+            </div>
+            <div>
+                <button id="crop-button" style="display:none; width: 100px; height: 50px">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
     <script>
+        //
+        document.addEventListener('DOMContentLoaded', function () {
+            const uploadImage = document.getElementById('upload-image');
+            const image = document.getElementById('image');
+            const cropper = new Cropper(image, {
+                aspectRatio: 1 / 1, // Define a proporção de aspecto desejada (opcional)
+                viewMode: 1,        // Define o modo de visualização (opcional)
+            });
+
+            // Quando o usuário seleciona uma imagem
+            uploadImage.addEventListener('change', function (event) {
+                const file = event.target.files[0];
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    image.src = e.target.result;
+                    image.style.display = 'block';
+                    document.getElementById('overlay').style.display = 'flex'; // Mostra o overlay
+                    cropper.replace(e.target.result); // Define a imagem no Cropper.js
+                    document.getElementById('crop-button').style.display = 'block'; // Mostra botão de salvar
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // Botão para salvar a imagem cortada
+            document.getElementById('crop-button').addEventListener('click', function () {
+                // Obtenha o recorte da imagem
+                const canvas = cropper.getCroppedCanvas({
+                    maxWidth: 300,
+                    maxHeight: 300,
+                });
+
+                // Exiba o recorte em uma nova janela ou faça algo com ele
+                if (canvas) {
+                    canvas.toBlob(function (blob) {
+                        // Aqui você pode enviar o blob para o servidor ou fazer o que for necessário
+                        const formData = new FormData();
+                        formData.append('croppedImage', blob, 'cropped_image.png');
+
+                        // Armazena a URL da imagem cortada no campo oculto
+                        const croppedImageURL = canvas.toDataURL(); // Obtém a URL da imagem cortada em formato base64
+                        document.getElementById('cropped-image-url').value = croppedImageURL;
+
+                        // Esconde o Cropper e o overlay após salvar
+                        document.getElementById('overlay').style.display = 'none';
+                        image.style.display = 'none';
+                        document.getElementById('crop-button').style.display = 'none';
+                    });
+                }
+            });
+        });
+
         const loginForm = document.getElementById('login-form');
         const registerForm = document.getElementById('register-form');
         const showRegisterLink = document.getElementById('show-register');
@@ -95,6 +175,7 @@
             const password = document.getElementById('register-password').value;
             const displayName = document.getElementById('display-name').value;
             const confirmPassword = document.getElementById('register-confirm-password').value;
+            const croppedImageURL = document.getElementById('cropped-image-url').value;
 
             if (password !== confirmPassword) {
                 document.getElementById('register-message').textContent = 'Passwords do not match';
@@ -107,7 +188,7 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({username, displayName, password}),
+                body: JSON.stringify({ username, displayName, password, croppedImageURL }),
             });
 
             const data = await response.json();
@@ -153,6 +234,7 @@
                 loginMessage.style.color = 'red';
             }
         });
+
     </script>
 </body>
 </html>
