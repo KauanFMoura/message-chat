@@ -617,22 +617,32 @@ function showGroupDetails(group_id) {
     let imgProfileGroup = document.getElementById('detail-group-icon');
     imgProfileGroup.src = group.imageURL;
 
-
     // Exibe a área de detalhes de pedidos de entrada
     const detailButtons = detailArea.querySelector('.detail-buttons');
-    const button = document.createElement('button');
-    button.classList.add('detail-button');
-    button.innerHTML = `
+    const buttonEntrada = document.createElement('button');
+    const buttonSair = document.createElement('button');
+    buttonEntrada.classList.add('detail-button');
+    buttonEntrada.innerHTML = `
         <span class="material-symbols-outlined">
             list
         </span>
         Pedidos de entrada
     `;
-    button.addEventListener('click', () => {
+    buttonSair.classList.add('detail-button');
+    buttonSair.id = 'button-close-admin';
+    buttonSair.innerHTML =
+        `<span class="material-symbols-outlined">
+            logout
+        </span>
+        Sair do Grupo
+    `;
+    buttonEntrada.addEventListener('click', () => {
         showEntryRequests(group_id); // Mostra os pedidos de entrada ao clicar no botão
     });
     detailButtons.innerHTML = ''; // Limpa botões anteriores (caso haja)
-    detailButtons.appendChild(button);
+    detailButtons.appendChild(buttonEntrada);
+    detailButtons.appendChild(buttonSair);
+
 
     // Exibe a lista de membros do grupo
     const detailGroup = document.getElementById('detail-group');
