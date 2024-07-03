@@ -2,5 +2,3 @@
 .venv
 .gitignore
 data
-__pycache__/
-
