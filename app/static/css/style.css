@@ -405,8 +405,31 @@ html {
     align-items: center;
     padding: 20px;
     margin: 0 0 10px 5px;
-    border-bottom: solid 2px var(--border-color)
+    border-bottom: solid 2px var(--border-color);
+    justify-content: space-between;
 }
+
+.chat-header-contact-profile {
+    display: flex;
+    align-items: center;
+}
+
+.chat-area-title {
+    flex-grow: 1;
+    text-align: left;
+}
+
+.chat-header-settings {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+.chat-header-settings i {
+    font-size: 20px; /* Ajuste conforme necessário */
+    cursor: pointer;
+}
+
 
 .chat-area-header:hover{
     cursor: pointer;
@@ -1214,4 +1237,57 @@ html {
 }
 #file-input {
     display: none;
+}
+
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* Garanta que o overlay fique acima de outros elementos */
+    display: none; /* Inicialmente oculto */
+}
+
+.spinner {
+    border: 16px solid #f3f3f3;
+    border-top: 16px solid #3498db;
+    border-radius: 50%;
+    width: 120px;
+    height: 120px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.hall-entrada {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.9); /* Cor de fundo com transparência */
+    padding: 20px;
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Sombra suave */
+    z-index: 1000; /* Garante que fique na frente dos outros elementos */
+}
+
+.hall-entrada img {
+    max-width: 100px; /* Tamanho máximo da imagem */
+    border-radius: 50%; /* Para uma imagem redonda, se necessário */
+}
+
+.hall-entrada p {
+    margin-top: 10px; /* Espaçamento superior para o texto */
+    font-size: 18px;
+    color: #333;
 }

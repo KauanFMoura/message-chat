@@ -398,31 +398,36 @@ def decline_request():
 @app.route('/api/remove_user_from_group', methods=['POST'])
 def remove_user_from_group():
     try:
-        data = request.get_json()
-        group_name = data.get('group_name')
         username = session.get('username')
 
         if not username:
             return jsonify({'status': 'error', 'message': 'Usuário não autenticado'}), 401
 
-        for group in groups:
-            if group['name'] == group_name:
-                if username != group['admin']:
-                    return jsonify({'status': 'error', 'message': 'Somente o administrador pode remover membros'}), 403
+        data = request.get_json()
+        group_id = data.get('group_id')
+        ban_username = data.get('username')
 
-                user_to_remove = data.get('username')
-                if user_to_remove in group['users']:
-                    if user_to_remove == group['admin']:
-                        return jsonify(
-                            {'status': 'error', 'message': 'Não é possível remover o administrador do grupo'}), 400
-                    group['users'].remove(user_to_remove)
+        groups = get_group(group_id)
+        group = groups[int(group_id)]
 
-                    return jsonify({'status': 'success', 'message': 'Usuário removido do grupo com sucesso',
-                                    'groups': groups}), 200
-                else:
-                    return jsonify({'status': 'error', 'message': 'Usuário não encontrado no grupo'}), 404
+        if group:
+            if group['admin'] != username:
+                return jsonify({'status': 'error', 'message': 'Somente o administrador pode banir um usário do Grupo'}), 403
 
-        return jsonify({'status': 'error', 'message': 'Grupo não encontrado'}), 404
+            ban_user = services.get_user_by_username(ban_username)
+            if not ban_user:
+                return jsonify({'status': 'error', 'message': 'Usuário não existe'})
+
+            if not ban_user.usu_username in group['users']:
+                return jsonify({'status': 'error', 'message': 'Usuário não é membro do grupo'})
+
+            new_ghu = services.remove_group_has_user(group_id, ban_user.usu_id)
+            if new_ghu:
+                group['users'].remove(ban_username)
+                socketio.emit('group_update', groups)
+                return jsonify({'status': 'success', 'message': 'Usuário removido com sucesso'}), 200
+        else:
+            return jsonify({'status': 'error', 'message': 'Grupo não encontrado'}), 404
 
     except Exception as e:
         print(f"Erro ao remover usuário do grupo: {e}")

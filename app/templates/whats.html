@@ -12,11 +12,16 @@
     <script src="{{ url_for('static', filename='javascript/javascript.js') }}"></script>
     <script src="https://cdn.socket.io/4.3.1/socket.io.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 </head>
 
 <body onresize="mudouTamanho()">
 <div class="app">
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
     <div class="header">
         <div class="logo" id="logo" onclick="toggleMenuConversa()">
             <svg viewBox="0 0 513 513" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
@@ -136,18 +141,26 @@
             </div>
         </div>
         <div class="chat-area">
+            <div class="hall-entrada" id="hallEntrada">
+                <img src="caminho/para/sua/imagem.jpg" alt="Imagem de boas-vindas">
+                <p>Bem-vindo ao Chat!</p>
+            </div>
+
             <div class="chat-area-header">
                 <div class="chat-header-contact-profile">
-                    <img class="msg-profile" id="chat-user-image"
-                     src="{{ user['profileImage'] }}"
-                     alt="">
+                    <img class="msg-profile" id="chat-user-image" src="{{ user['profileImage'] }}" alt="">
                 </div>
                 <div id="chat-area-title" class="chat-area-title">Chat</div>
+                <div class="chat-header-settings">
+                    <i class="fas fa-cog"></i>
+                </div>
             </div>
+
             <div class="chat-area-main">
             </div>
             <div class="chat-area-footer">
-                <svg id="file-upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                <svg id="file-upload-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor"
                      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
                      class="feather feather-paperclip">
                     <path
@@ -160,6 +173,7 @@
                 </span>
             </div>
         </div>
+
         <div id="detail-area">
             <div class="detail-area-header">
                 <div class="msg-profile group">
@@ -332,7 +346,7 @@
 
         // Atualiza o estado do chat atual
         if (!users[lastSelectedUser]['chatState']) {
-            users[lastSelectedUser]['chatState'] = { 'chat-area-main': '', 'inputText': '' };
+            users[lastSelectedUser]['chatState'] = {'chat-area-main': '', 'inputText': ''};
         }
         users[lastSelectedUser]['chatState']['chat-area-main'] = chatTarget.innerHTML;
     };
@@ -389,7 +403,7 @@
 
         // Atualiza o estado do chat atual
         if (!groups[group_id]['chatState']) {
-            groups[group_id]['chatState'] = { 'chat-area-main': '', 'inputText': '' };
+            groups[group_id]['chatState'] = {'chat-area-main': '', 'inputText': ''};
         }
         groups[group_id]['chatState']['chat-area-main'] += messageElement;
 
@@ -408,7 +422,7 @@
 
     // Evento para receber mensagens privadas
     socket.on('private_message', (data) => {
-        const { sender, message } = data;
+        const {sender, message} = data;
         const currentTime = new Date().toLocaleTimeString();
         let messageClass = 'chat-msg';
 
@@ -424,7 +438,7 @@
         `;
 
         if (!users[sender]['chatState']) {
-            users[sender]['chatState'] = { 'chat-area-main': '', 'inputText': '' };
+            users[sender]['chatState'] = {'chat-area-main': '', 'inputText': ''};
         }
         users[sender]['chatState']['chat-area-main'] += messageElement;
         console.log(users[sender]['chatState']['chat-area-main']);
@@ -441,40 +455,58 @@
         }
     });
 
+    function showLoadingOverlay() {
+        document.getElementById('loading-overlay').style.display = 'flex';
+    }
+
+    function hideLoadingOverlay() {
+        document.getElementById('loading-overlay').style.display = 'none';
+    }
 
     // Requisição para obter a lista de pessoas do servidor
-    function getAndUpdateGrupos(){
+    function getAndUpdateGrupos() {
+        showLoadingOverlay(); // Mostrar o overlay de carregamento
+
         fetch('/api/groups', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                updateConversationMenu('conversas-grupos', data, currentUser, socket);
             })
-                    .then(response => response.json())
-                    .then(data => {
-                        updateConversationMenu('conversas-grupos', data, currentUser, socket);
-                    })
-                    .catch(error => {
-                        console.error('Erro ao obter lista de grupos:', error);
-                    });
+            .catch(error => {
+                console.error('Erro ao obter lista de grupos:', error);
+            })
+            .finally(() => {
+                hideLoadingOverlay(); // Ocultar o overlay de carregamento
+            });
     }
 
-    function getAndUpdatePessoas(){
+    function getAndUpdatePessoas() {
+        showLoadingOverlay(); // Mostrar o overlay de carregamento
+
         fetch('/api/people', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                updateConversationMenu('conversas-pessoas', data, currentUser, socket);
             })
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log(data);
-                        updateConversationMenu('conversas-pessoas', data, currentUser, socket);
-                    })
-                    .catch(error => {
-                        console.error('Erro ao obter lista de grupos:', error);
-                    });
+            .catch(error => {
+                console.error('Erro ao obter lista de grupos:', error);
+            })
+            .finally(() => {
+                hideLoadingOverlay(); // Ocultar o overlay de carregamento
+            });
     }
+
 
     document.addEventListener('DOMContentLoaded', function () {
         // Evento de clique para o botão de Pessoas
@@ -524,20 +556,20 @@
                     },
                     body: JSON.stringify(data)
                 })
-                        .then(response => response.json())
-                        .then(result => {
-                            if (result.status === 'success') {
-                                alert('Grupo criado com sucesso!');
-                                createGroupForm.style.display = 'none'; // Esconde o formulário após criar o grupo
-                                // Aqui você pode decidir o que fazer após criar o grupo, como atualizar a lista de grupos
-                            } else {
-                                alert(`Erro ao criar grupo: ${result.message}`);
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Erro ao criar grupo:', error);
-                            alert('Erro ao criar grupo. Nome já Existente ou Conexação Perdida.');
-                        });
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.status === 'success') {
+                            alert('Grupo criado com sucesso!');
+                            createGroupForm.style.display = 'none'; // Esconde o formulário após criar o grupo
+                            // Aqui você pode decidir o que fazer após criar o grupo, como atualizar a lista de grupos
+                        } else {
+                            alert(`Erro ao criar grupo: ${result.message}`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erro ao criar grupo:', error);
+                        alert('Erro ao criar grupo. Nome já Existente ou Conexação Perdida.');
+                    });
             } else {
                 alert('Por favor, insira um nome para o grupo.');
             }
