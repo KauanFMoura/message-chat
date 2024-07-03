@@ -185,22 +185,6 @@ def get_group(group_id=None):
     return groups
 
 
-@app.route('/api/messages/<user1>/<user2>', methods=['GET'])
-def get_messages(user1, user2):
-    key1 = f"{user1}-{user2}"
-    key2 = f"{user2}-{user1}"
-
-    messages = []
-
-    if key1 in message_database:
-        messages.extend(message_database[key1])
-    if key2 in message_database:
-        messages.extend(message_database[key2])
-    messages = sorted(messages, key=lambda x: x.get('timestamp', float('inf')))
-
-    return jsonify(messages if messages else [])
-
-
 @app.route('/api/people', methods=['GET'])
 def get_people():
     if 'username' not in session:
@@ -412,7 +396,8 @@ def remove_user_from_group():
 
         if group:
             if group['admin'] != username:
-                return jsonify({'status': 'error', 'message': 'Somente o administrador pode banir um usário do Grupo'}), 403
+                return jsonify(
+                    {'status': 'error', 'message': 'Somente o administrador pode banir um usário do Grupo'}), 403
 
             ban_user = services.get_user_by_username(ban_username)
             if not ban_user:
@@ -476,9 +461,55 @@ def request_group_entry():
         new_ghu = services.register_user_on_group(group_id, user_id, False, datetime.now(), False)
 
         if group_creator_username in connected_users.keys() and connected_users[group_creator_username]['sid']:
-            socketio.emit('new_entry_request', {"id": group_id, "username": username}, to=connected_users[group_creator_username]['sid'])
+            socketio.emit('new_entry_request', {"id": group_id, "username": username},
+                          to=connected_users[group_creator_username]['sid'])
 
         return jsonify({'status': 'success', 'message': 'Solicitação enviada'}), 404
     except Exception as e:
         print(f"Erro ao solicitar entrada no grupo: {e}")
         return jsonify({'status': 'error', 'message': 'Erro ao solicitar entrada no grupo'}), 500
+
+
+@app.route('/api/leave_group', methods=['POST'])
+def leave_group():
+    try:
+        data = request.get_json()
+        group_id = data.get('group_id')
+        username = session.get('username')
+        user_id = session.get('user').get('id')
+
+        if not username:
+            return jsonify({'status': 'error', 'message': 'Usuário não autenticado'}), 401
+
+        group = services.get_group_by_id(group_id)
+        if not group:
+            return jsonify({'status': 'error', 'message': 'Grupo não encontrado'}), 404
+
+        group_admin_username = group['gp_creator']['username']
+        gruop_type = group['gp_exclusion_type'] # 1 - exclusão, 2 - outro admin
+        ghu = services.get_group_has_user(user_id, group_id)
+        if not ghu:
+            return jsonify({'status': 'error', 'message': 'Você não é membro deste grupo'}), 400
+
+        if username == group_admin_username:
+            if gruop_type == 1:
+                services.delete_group(group_id)
+                socketio.emit('att_group', broadcast=True)
+                return jsonify({'status': 'success', 'message': 'Você saiu do grupo e ele foi excluído'}), 200
+            else:
+                new_ghu = services.change_group_creator_randomly(group_id)
+                if new_ghu:
+                    services.remove_group_has_user(group_id, user_id)
+                    socketio.emit('att_group')
+                    return jsonify({'status': 'success', 'message': 'Você saiu do grupo e passou a administração para outro usuário'}), 200
+                else:
+                    services.delete_group(group_id)
+                    socketio.emit('att_group')
+                    return jsonify({'status': 'success', 'message': 'Você saiu do grupo e ele foi excluído'}), 200
+
+        services.remove_group_has_user(group_id, user_id)
+        socketio.emit('att_group')
+        return jsonify({'status': 'success', 'message': 'Saiu do Grupo'}), 404
+    except Exception as e:
+        print(f"Erro ao sair do grupo: {e}")
+        return jsonify({'status': 'error', 'message': 'Erro ao sair do grupo'}), 500
