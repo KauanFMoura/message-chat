@@ -333,7 +333,7 @@
             sender: currentUser,
             receiver: lastSelectedUser,
             message: message,
-            time_sent: currentDateTime,
+            time_sent: currentTime,
             uuid: uuid
         });
         let messageClass = 'chat-msg owner';
@@ -353,8 +353,7 @@
             const downloadElement = `
             <div class="${messageClass}">
                 <div class="chat-msg-profile">
-                    <img class="chat-msg-img" src="${users[sender].profileImage}" alt="" />
-                    <div class="chat-msg-date">Mensagem enviada ${time_sent}</div>
+                    <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
                 </div>
                 <div class="chat-msg-user">Nome do Usuário</div>
                 <div class="chat-msg-content">
