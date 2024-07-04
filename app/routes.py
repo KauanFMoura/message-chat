@@ -97,7 +97,9 @@ def chat():
         return redirect(url_for('index'))
 
     try:
+        print(session)
         user = session['user']
+        print(user)
         username = session['username']
         if username not in connected_users.keys():
             connected_users[username] = user
@@ -106,6 +108,7 @@ def chat():
                                defaultGroupImage=app.config['DEFAULT_GROUP_IMAGE'],
                                defaultProfileImage=app.config['DEFAULT_PROFILE_IMAGE'])
     except Exception as e:
+        print(e)
         return redirect(url_for('index'))
 
 
