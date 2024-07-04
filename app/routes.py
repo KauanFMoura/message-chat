@@ -75,7 +75,8 @@ def register():
             "displayName": user.usu_displayname,
             "profileImage": app.config['DEFAULT_PROFILE_IMAGE'],
             "status": user.usu_status,
-            "online": True
+            "online": True,
+            "groups": []
         }
         session['username'] = username
         session['user'] = connected_users[username]
