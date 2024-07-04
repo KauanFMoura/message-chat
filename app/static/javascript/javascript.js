@@ -364,22 +364,38 @@ function createMessageElement(message, username) {
     let sender = message.sender;
     let timestamp = message.timestamp;
     let messageContent = message.message;
+    let messageuuid = message.file;
+    console.log(messageuuid)
     let messageClass = 'chat-msg';
 
     if (sender !== username) {
         messageClass += ' owner';
     }
-
-    return `
-        <div class="${messageClass}">
-            <div class="chat-msg-profile">
-                <div class="chat-msg-date">Mensagem enviada ${timestamp}</div>
+    if (messageuuid === null) {
+        return `
+                <div class="${messageClass}">
+                    <div class="chat-msg-profile">
+                        <div class="chat-msg-date">Mensagem enviada ${timestamp}</div>
+                    </div>
+                    <div class="chat-msg-content">
+                        <div class="chat-msg-text">${messageContent}</div>
+                    </div>
+                </div>
+            `;
+    } else {
+        return `
+            <div class="${messageClass}">
+                <div class="chat-msg-profile">
+                    <div class="chat-msg-date">Mensagem enviada ${timestamp}</div>
+                </div>
+                <div class="chat-msg-content">
+                    <div class="chat-msg-text">
+                        <a href="/api/get_file/${messageuuid}" class="download-link">Clique aqui para baixar o arquivo</a>
+                    </div>
+                </div>
             </div>
-            <div class="chat-msg-content">
-                <div class="chat-msg-text">${messageContent}</div>
-            </div>
-        </div>
-    `;
+            `;
+    }
 }
 
 function handleUserClick(div, username, displayName) {

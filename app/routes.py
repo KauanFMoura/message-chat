@@ -214,6 +214,7 @@ def get_people(server_request=False):
             "status": user.usu_status,
             "online": isOnline,
             "messages": messages
+
         }
     if server_request:
         return users_dict
