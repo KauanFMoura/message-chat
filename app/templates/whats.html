@@ -45,8 +45,8 @@
                 <i id="config" class="fas fa-cog" style="width: 22px; height: 22px; color: var(--settings-icon-color); flex-shrink: 0; margin-left: 5px"></i>
             </div>
             <div class="user-profile-container">
-                <img class="user-profile"
-                     src="{{ user['profileImage'] }}"
+                <img id="user-profile-image" class="user-profile"
+                     src=""
                      alt="User Profile">
 
                 <ul class="menu-logout">
@@ -146,6 +146,7 @@
                 </form>
             </div>
         </div>
+
         <div class="hall-entrada" id="hallEntrada">
             <img src="{{ url_for('static', filename='imgs/chat.jpg') }}" alt="Imagem de boas-vindas">
             <p>Bem-vindo ao Chat!<br>
@@ -155,6 +156,7 @@
             <div class="chat-area-header" id="chat-area-header">
                 <div class="chat-header-contact-profile" id="chat-header-contact-profile">
                     <img class="msg-profile" id="chat-user-image" src="{{ user['profileImage'] }}" alt="">
+
                 </div>
                 <div class="chat-title">
                     <div id="chat-area-title" class="chat-area-title"></div>
@@ -309,13 +311,23 @@
     const messageForm = document.querySelector('.chat-area-footer');
     const chatAreaMain = document.querySelector('.chat-area-main');
     const chatHeader = document.querySelector('.chat-area-header');
+    const currentUserProfileImage = "{{ userProfileImage }}";
+    const defaultProfileImage = " {{ defaultProfileImage }}";
+    const defaultGroupImage = " {{ defaultGroupImage }}";
+    const currentUser = "{{ username }}";
+
     let lastSelectedUser = null;
+
+    if (currentUserProfileImage != null) {
+        document.getElementById('user-profile-image').src = currentUserProfileImage;
+    } else {
+        document.getElementById('user-profile-image').src = defaultProfileImage;
+    }
 
     document.addEventListener('privateChatStarted', function (event) {
         lastSelectedUser = event.detail.otherUser;
     });
 
-    const currentUser = "{{ username }}";
 
     if (!currentUser) {
         alert('Usuário não está logado');
@@ -351,31 +363,17 @@
     // Função para enviar mensagem de grupo ao servidor
     const sendGroupMessage = (message, uuid=null) => {
         let currentTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
-        socket.emit('group_message', {
+        let messageData = {
             sender: currentUser,
             group_id: currentChatTarget, // Variável que armazena o nome do grupo atual
             message: message,
-            time_sent: currentTime,
+            timestamp: currentTime,
             uuid: uuid
-        });
-
-        let messageClass = 'chat-msg owner';
-        if (uuid !== null){
-            const messageElement = `
-                <div class="${messageClass}">
-                    <div class="chat-msg-profile">
-                        <img class="chat-msg-img" src="icone_usuario.png" alt="" />
-                        <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
-                    </div>
-                    <div class="chat-msg-user">Nome do Usuário</div>
-                    <div class="chat-msg-content">
-                        <div class="chat-msg-text">${message}</div>
-                    </div>
-                </div>
-            `;
-        }else{
-
         }
+
+        socket.emit('group_message', messageData);
+
+        let messageElement = createGroupMessageElement(messageData, currentUser);
 
         // Adiciona a mensagem ao chat atual
         let chatTarget = document.querySelector('.chat-area-main');
@@ -387,48 +385,21 @@
             lastMessageElement.scrollIntoView({behavior: 'smooth'});
         }
         groups[currentChatTarget]['chatState']['chat-area-main'] = chatTarget.innerHTML;
-
+        
     };
 
     // Função para enviar mensagem ao servidor
-    const sendMessage = (message, uuid=null) => {
+    const sendMessage = (message) => {
         let currentTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
-        socket.emit('private_message', {
+        let messageData = {
             sender: currentUser,
             receiver: lastSelectedUser,
             message: message,
-            time_sent: currentDateTime,
+            timestamp: currentTime,
             uuid: uuid
-        });
-        let messageClass = 'chat-msg owner';
-
-        if (uuid !== null){
-            const messageElement = `
-                <div class="${messageClass}">
-                    <div class="chat-msg-profile">
-                        <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
-                    </div>
-                    <div class="chat-msg-content">
-                        <div class="chat-msg-text">${message}</div>
-                    </div>
-                </div>
-            `;
-        }else{
-            const downloadElement = `
-            <div class="${messageClass}">
-                <div class="chat-msg-profile">
-                    <img class="chat-msg-img" src="${users[sender].profileImage}" alt="" />
-                    <div class="chat-msg-date">Mensagem enviada ${time_sent}</div>
-                </div>
-                <div class="chat-msg-user">Nome do Usuário</div>
-                <div class="chat-msg-content">
-                    <div class="chat-msg-text">
-                        <a href="/api/get_file/${uuid}" class="download-link">Clique aqui para baixar o arquivo</a>
-                    </div>
-                </div>
-            </div>
-            `;
         }
+
+        const messageElement = createMessageElement(messageData, currentUser);
 
         // Adiciona a mensagem ao chat atual
         let chatTarget = document.querySelector('.chat-area-main');
@@ -473,35 +444,9 @@
 
     // Evento para receber mensagens de grupo
     socket.on('group_message', (data) => {
-        let message = data.message;
-        let sender = data.sender;
         let group_id = data.group_id;
-        let uuid = data.uuid;
-        let time_sent = data.time_sent;
-        let messageClass = 'chat-msg';
 
-
-        // Verifica se a mensagem é do grupo que está ativo
-        if (sender === currentChatTarget) {
-            messageClass += ' owner';
-        }
-
-        if (uuid !== null){
-            const messageElement = `
-            <div class="${messageClass}">
-                <div class="chat-msg-profile">
-                    <img class="chat-msg-img" src="${users[sender].profileImage}" alt="" />
-                    <div class="chat-msg-date">Mensagem enviada ${time_sent}</div>
-                </div>
-                <div class="chat-msg-user">Nome do Usuário</div>
-                <div class="chat-msg-content">
-                    <div class="chat-msg-text">${message}</div>
-                </div>
-            </div>
-            `;
-        }else{
-
-        }
+        let messageElement = createGroupMessageElement(data, currentUser);
 
         // Atualiza o estado do chat atual
         if (!groups[group_id]['chatState']) {
@@ -526,27 +471,9 @@
 
     // Evento para receber mensagens privadas
     socket.on('private_message', (data) => {
-        let message = data.message
         let sender = data.sender
-        let uuid = data.uuid
-        const time_sent = data.time_sent
-        let messageClass = 'chat-msg';
 
-        if (uuid !== null){
-            const messageElement = `
-                <div class="${messageClass}">
-                    <div class="chat-msg-profile">
-                        <div class="chat-msg-date">Message seen ${time_sent}</div>
-                    </div>
-                    <div class="chat-msg-content">
-                        <div class="chat-msg-text">${message}</div>
-                    </div>
-                </div>
-            `;
-        }else{
-
-        }
-
+        const messageElement = createMessageElement(data, currentUser);
 
         if (!users[sender]['chatState']) {
             users[sender]['chatState'] = {'chat-area-main': '', 'inputText': ''};
@@ -609,6 +536,9 @@
             .catch(error => {
                 console.error('Erro ao obter lista de grupos:', error);
             })
+            .finally(() => {
+                getAndUpdateGrupos();
+            });
     }
 
 
@@ -631,7 +561,7 @@
     function initializeChats() {
         showLoadingOverlay();
         getAndUpdatePessoas();
-        getAndUpdateGrupos();
+        //GetAndUpdatePessoas chama getAndUpdateGrupos no finnaly, pois os usuários precisam ser carregados
         hideLoadingOverlay();
     }
 

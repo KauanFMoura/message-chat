@@ -54,9 +54,8 @@ def handle_message(data):
     sender = data['sender']
     receiver = data['receiver']
     message = data['message']
-    time_sent = data['time_sent']
+    timestamp = data['timestamp']
     uuid = data['uuid']
-    file = services.get_file_by_uuid(uuid)
     sid_receiver = connected_users.get(receiver, {}).get('sid')
 
     if receiver in connected_users.keys():
@@ -74,7 +73,7 @@ def handle_message(data):
 
     print(f'{sender} sent a private message to {receiver}')
     # Registrando mensagem no banco de dados
-    services.register_private_message(sender_id, receiver_id, message, time_sent, file)
+    services.register_private_message(sender_id, receiver_id, message, timestamp, uuid)
 
 
 @socketio.on('group_message')

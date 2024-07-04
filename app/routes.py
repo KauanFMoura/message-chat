@@ -30,7 +30,7 @@ def login():
                                           filename=f'{user.profile_image.file_uuid + user.profile_image.file_ext}',
                                           _external=True)
             else:
-                profileImageURL = app.config['DEFAULT_PROFILE_IMAGE']
+                profileImageURL = None
 
             ghus = services.get_user_groups(user.usu_id)
             groups = [ghu.ghu_group_id for ghu in ghus]
@@ -73,7 +73,7 @@ def register():
         connected_users[username] = {
             "id": user.usu_id,
             "displayName": user.usu_displayname,
-            "profileImage": app.config['DEFAULT_PROFILE_IMAGE'],
+            "profileImage": None,
             "status": user.usu_status,
             "online": True,
             "groups": []
@@ -102,20 +102,11 @@ def chat():
         if username not in connected_users.keys():
             connected_users[username] = user
 
-        return render_template('whats.html', user=user, username=username)
+        return render_template('whats.html', userProfileImage=user['profileImage'], username=username,
+                               defaultGroupImage=app.config['DEFAULT_GROUP_IMAGE'],
+                               defaultProfileImage=app.config['DEFAULT_PROFILE_IMAGE'])
     except Exception as e:
         return redirect(url_for('index'))
-
-
-@app.route('/load_data')
-def load_data():
-    if 'username' not in session:
-        return jsonify({'error': 'Unauthorized access'}), 401
-
-    users = get_people(True)
-    groups = get_groups(True)
-
-    return jsonify({'users': users, 'groups': groups}), 200
 
 
 @app.route('/logout')
@@ -166,7 +157,7 @@ def get_group(group_id=None):
                                    filename=f'{group["group_image_uuid"]}{group["file_ext"]}',
                                    _external=True)
             else:
-                imageURL = app.config['DEFAULT_GROUP_IMAGE']
+                imageURL = None
 
             groups[group_id] = {
                 'name': group['group_name'],
@@ -203,7 +194,7 @@ def get_people(server_request=False):
                                       filename=f'{user.profile_image.file_uuid}{user.profile_image.file_ext}',
                                       _external=True)
         else:
-            profileImageURL = app.config['DEFAULT_PROFILE_IMAGE']
+            profileImageURL = None
 
         messages = services.get_user_private_messages(user.usu_id, username_session)
 
@@ -215,6 +206,7 @@ def get_people(server_request=False):
             "online": isOnline,
             "messages": messages
         }
+
     if server_request:
         return users_dict
     return jsonify(users_dict), 200
@@ -237,13 +229,12 @@ def get_groups(server_request=False):
         group_id = group['group_id']
         # Adicionando o grupo caso ele não esteja no dicionário de resultados
         if group_id not in groups.keys():
-
             if group['group_image_uuid']:
                 imageURL = url_for('uploaded_file',
                                    filename=f'{group["group_image_uuid"]}{group["file_ext"]}',
                                    _external=True)
             else:
-                imageURL = app.config['DEFAULT_GROUP_IMAGE']
+                imageURL = None
 
             groups[group_id] = {
                 'name': group['group_name'],
@@ -262,6 +253,7 @@ def get_groups(server_request=False):
                 groups[group_id]['users'].append(user['member_username'])
             elif user['member_username'] not in groups[group_id]['requests']:
                 groups[group_id]['requests'].append(user['member_username'])
+
     if server_request:
         return groups
     return jsonify(groups), 200
@@ -290,9 +282,20 @@ def create_group():
         new_group = services.create_group(group_name, user_creator_id, group_description, None,
                                           int(group_exclusion_type), True)
         new_ghu = services.register_user_on_group(new_group.gp_id, user_creator_id, True, datetime.now(), True)
-        socketio.emit('group_created',
-                      {'name': new_group.gp_name, 'admin': user_creator_username, 'users': [user_creator_username],
-                       'requests': []})
+        groups = {new_group.gp_id: {
+            'name': new_group.gp_name,
+            'admin': user_creator_username,
+            'users': [user_creator_username],
+            'description': new_group.gp_description,
+            'imageURL': None,
+            'requests': [],
+            'messages': []}
+        }
+
+        connected_users[username]['groups'].append(new_group.gp_id)
+        group_rooms[new_group.gp_id] = [user_creator_username]
+        print(group_rooms)
+        socketio.emit('group_created', groups)
 
         return jsonify({'status': 'success', 'message': 'Grupo criado com sucesso'}), 201
     except Exception as e:
@@ -430,12 +433,7 @@ def get_file(uuid):
     if not file:
         return jsonify({'error': 'Arquivo não encontrado'}), 404
 
-    send_filename = file.file_name + file.file_ext
-    server_file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.file_uuid + file.file_ext)
-
-    return send_file(server_file_path,
-                     as_attachment=True,
-                     attachment_filename=send_filename)
+    return send_file(file, as_attachment=True, download_name=file.file_name)
 
 
 @app.route('/api/request_group_entry', methods=['POST'])
