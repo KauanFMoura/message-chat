@@ -462,7 +462,11 @@ html {
     font-weight: 600;
 }
 .chat-area-main {
+    align-items: center;
+    justify-content: center;
+    display: flex;
     flex-grow: 1;
+    position: relative;
 }
 
 .chat-msg-img {
@@ -1300,7 +1304,6 @@ html {
 
 .hall-entrada img {
     max-width: 100px; /* Tamanho máximo da imagem */
-    border-radius: 50%; /* Para uma imagem redonda, se necessário */
 }
 
 .hall-entrada p {

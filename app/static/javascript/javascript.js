@@ -16,18 +16,17 @@ function toggleButton() {
 }
 
 function mudouTamanho() {
-    var menu = document.getElementById('menu-conversas');
-    var logo = document.getElementById('logo');
-    var detailArea = document.getElementById('detail-area');
-    var menuContato = document.getElementById('menu-contact');
+    let menu = document.getElementById('menu-conversas');
+    let detailArea = document.getElementById('detail-area');
+    let menuContato = document.getElementById('menu-contact');
 
     if (window.innerWidth >= 780) {
         menu.style.display = 'block';
-        logo.onclick = null; // Remove a função onclick
+        logoElement.onclick = null; // Remove a função onclick
         menuContato.style.display = 'none';
     } else if (window.innerWidth < 780) {
         menu.style.display = 'none';
-        logo.onclick = toggleMenuConversa; // Adiciona a função onclick
+        logoElement.onclick = toggleMenuConversa; // Adiciona a função onclick
         detailArea.style.display = 'none';
         menuContato.style.display = 'none';
     } else if (window.innerWidth >= 1120) {
@@ -499,6 +498,10 @@ function handleUserClick(div, username, displayName) {
 
     document.dispatchEvent(new CustomEvent('privateChatStarted', { detail: { otherUser: username } }));
     hideDetails();
+
+    if (logoElement.onclick != null) {
+        toggleMenuConversa();
+    }
     chatAreaMainDiv.lastElementChild.scrollIntoView({behavior: 'smooth'});
 }
 
@@ -629,6 +632,11 @@ function handleGroupClick(div, group, group_id, currentUser) {
         requestStatus.innerText = 'Solicitação pendente';
         actionButtonsDiv.appendChild(requestStatus);
     }
+
+    if (logoElement.onclick != null) {
+        toggleMenuConversa();
+    }
+
     chatAreaMainDiv.lastElementChild.scrollIntoView({behavior: 'smooth'});
     document.dispatchEvent(new CustomEvent('groupChatStarted', { detail: { groupName: group.name } }));
 }
