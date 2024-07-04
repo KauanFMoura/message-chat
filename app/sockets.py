@@ -69,7 +69,7 @@ def handle_message(data):
         sender_id = services.get_user_by_username(sender).usu_id
 
     if sid_receiver:
-        emit('private_message', {'sender': sender, 'message': message}, to=sid_receiver)
+        emit('private_message', {'sender': sender, 'message': message, 'uuid': uuid}, to=sid_receiver)
 
     print(f'{sender} sent a private message to {receiver}')
     # Registrando mensagem no banco de dados
