@@ -262,8 +262,8 @@
         console.log('Connected to server');
     });
 
-    socket.on('group_created', (groups) => {
-        updateConversationMenu('conversas-grupos', groups, currentUser, socket);
+    socket.on('group_created', (data) => {
+        updateConversationMenu('conversas-grupos', data, currentUser, socket);
     });
 
     socket.on('user_update', (users) => {

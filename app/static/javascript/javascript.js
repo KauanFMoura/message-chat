@@ -467,6 +467,9 @@ function updateGroupConversations(menuConversas, conversas, data, currentUser) {
     for (let group_id in data) {
         let group = data[group_id];
         let groupDiv = getChatDiv(conversas, group_id, 'group');
+        if (!group_id in groups){
+            groups[group_id] = group;
+        }
         groups[group_id] = group;
 
         if (groupDiv) {

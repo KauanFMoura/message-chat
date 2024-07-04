@@ -255,7 +255,6 @@ def get_groups(server_request=False):
         group_id = group['group_id']
         # Adicionando o grupo caso ele não esteja no dicionário de resultados
         if group_id not in groups.keys():
-
             if group['group_image_uuid']:
                 imageURL = url_for('uploaded_file',
                                    filename=f'{group["group_image_uuid"]}{group["file_ext"]}',
@@ -308,9 +307,20 @@ def create_group():
         new_group = services.create_group(group_name, user_creator_id, group_description, None,
                                           int(group_exclusion_type), True)
         new_ghu = services.register_user_on_group(new_group.gp_id, user_creator_id, True, datetime.now(), True)
-        socketio.emit('group_created',
-                      {'name': new_group.gp_name, 'admin': user_creator_username, 'users': [user_creator_username],
-                       'requests': []})
+        groups = {new_group.gp_id:
+                      {'name': new_group.gp_name,
+                       'admin': user_creator_username,
+                       'users': [user_creator_username],
+                       'description': new_group.gp_description,
+                       'imageURL': app.config['DEFAULT_GROUP_IMAGE'],
+                       'requests': [],
+                       'messages': []}
+                  }
+
+        connected_users[username]['groups'].append(new_group.gp_id)
+        group_rooms[new_group.gp_id] = [user_creator_username]
+        print(group_rooms)
+        socketio.emit('group_created', groups)
 
         return jsonify({'status': 'success', 'message': 'Grupo criado com sucesso'}), 201
     except Exception as e:
