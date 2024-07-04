@@ -102,20 +102,11 @@ def chat():
         if username not in connected_users.keys():
             connected_users[username] = user
 
-        return render_template('whats.html', user=user, username=username, defaultGroupImage=app.config['DEFAULT_GROUP_IMAGE'], defaultProfileImage=app.config['DEFAULT_PROFILE_IMAGE'])
+        return render_template('whats.html', userProfileImage=user['profileImage'], username=username,
+                               defaultGroupImage=app.config['DEFAULT_GROUP_IMAGE'],
+                               defaultProfileImage=app.config['DEFAULT_PROFILE_IMAGE'])
     except Exception as e:
         return redirect(url_for('index'))
-
-
-@app.route('/load_data')
-def load_data():
-    if 'username' not in session:
-        return jsonify({'error': 'Unauthorized access'}), 401
-
-    users = get_people(True)
-    groups = get_groups(True)
-
-    return jsonify({'users': users, 'groups': groups}), 200
 
 
 @app.route('/logout')
@@ -166,7 +157,7 @@ def get_group(group_id=None):
                                    filename=f'{group["group_image_uuid"]}{group["file_ext"]}',
                                    _external=True)
             else:
-                imageURL = app.config['DEFAULT_GROUP_IMAGE']
+                imageURL = None
 
             groups[group_id] = {
                 'name': group['group_name'],
@@ -214,8 +205,8 @@ def get_people(server_request=False):
             "status": user.usu_status,
             "online": isOnline,
             "messages": messages
-
         }
+
     if server_request:
         return users_dict
     return jsonify(users_dict), 200
@@ -243,7 +234,7 @@ def get_groups(server_request=False):
                                    filename=f'{group["group_image_uuid"]}{group["file_ext"]}',
                                    _external=True)
             else:
-                imageURL = app.config['DEFAULT_GROUP_IMAGE']
+                imageURL = None
 
             groups[group_id] = {
                 'name': group['group_name'],
@@ -291,15 +282,15 @@ def create_group():
         new_group = services.create_group(group_name, user_creator_id, group_description, None,
                                           int(group_exclusion_type), True)
         new_ghu = services.register_user_on_group(new_group.gp_id, user_creator_id, True, datetime.now(), True)
-        groups = {new_group.gp_id:
-                      {'name': new_group.gp_name,
-                       'admin': user_creator_username,
-                       'users': [user_creator_username],
-                       'description': new_group.gp_description,
-                       'imageURL': app.config['DEFAULT_GROUP_IMAGE'],
-                       'requests': [],
-                       'messages': []}
-                  }
+        groups = {new_group.gp_id: {
+            'name': new_group.gp_name,
+            'admin': user_creator_username,
+            'users': [user_creator_username],
+            'description': new_group.gp_description,
+            'imageURL': None,
+            'requests': [],
+            'messages': []}
+        }
 
         connected_users[username]['groups'].append(new_group.gp_id)
         group_rooms[new_group.gp_id] = [user_creator_username]

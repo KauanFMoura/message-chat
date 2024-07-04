@@ -394,7 +394,7 @@ function createMessageElement(message, username) {
     let timestamp = message.timestamp;
     let messageContent = message.message;
     let messageuuid = message.file;
-    console.log(messageuuid)
+
     let messageClass = 'chat-msg';
 
     if (sender !== username) {

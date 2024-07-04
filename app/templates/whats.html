@@ -42,8 +42,8 @@
                 </svg>
             </div>
             <div class="user-profile-container">
-                <img class="user-profile"
-                     src="{{ user['profileImage'] }}"
+                <img id="user-profile-image" class="user-profile"
+                     src=""
                      alt="User Profile">
 
                 <ul class="menu-logout">
@@ -148,7 +148,7 @@
 
             <div class="chat-area-header">
                 <div class="chat-header-contact-profile">
-                    <img class="msg-profile" id="chat-user-image" src="{{ user['profileImage'] }}" alt="">
+                    <img class="msg-profile" id="chat-user-image" src="" alt="">
                 </div>
                 <div id="chat-area-title" class="chat-area-title">Chat</div>
                 <div class="chat-header-settings">
@@ -245,13 +245,23 @@
     const messageForm = document.querySelector('.chat-area-footer');
     const chatAreaMain = document.querySelector('.chat-area-main');
     const chatHeader = document.querySelector('.chat-area-header');
+    const currentUserProfileImage = "{{ userProfileImage }}";
+    const defaultProfileImage = " {{ defaultProfileImage }}";
+    const defaultGroupImage = " {{ defaultGroupImage }}";
+    const currentUser = "{{ username }}";
+
     let lastSelectedUser = null;
+
+    if (currentUserProfileImage != null) {
+        document.getElementById('user-profile-image').src = currentUserProfileImage;
+    } else {
+        document.getElementById('user-profile-image').src = defaultProfileImage;
+    }
 
     document.addEventListener('privateChatStarted', function (event) {
         lastSelectedUser = event.detail.otherUser;
     });
 
-    const currentUser = "{{ username }}";
 
     if (!currentUser) {
         alert('Usuário não está logado');
@@ -460,6 +470,9 @@
             .catch(error => {
                 console.error('Erro ao obter lista de grupos:', error);
             })
+            .finally(() => {
+                getAndUpdateGrupos();
+            });
     }
 
 
@@ -482,7 +495,7 @@
     function initializeChats() {
         showLoadingOverlay();
         getAndUpdatePessoas();
-        getAndUpdateGrupos();
+        //GetAndUpdatePessoas chama getAndUpdateGrupos no finnaly, pois os usuários precisam ser carregados
         hideLoadingOverlay();
     }
 
