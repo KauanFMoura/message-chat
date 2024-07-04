@@ -363,6 +363,7 @@ def edit_group_has_user(ghu_group_id, ghu_user_id, ghu_is_admin, ghu_entry_date,
 def remove_group_has_user(ghu_group_id, ghu_user_id):
     group_has_user = GroupHasUser.query.filter_by(ghu_group_id=ghu_group_id, ghu_user_id=ghu_user_id).first()
     group_has_user.ghu_active = False
+
     db.session.add(group_has_user)
     db.session.commit()
     return group_has_user

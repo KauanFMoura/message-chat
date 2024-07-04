@@ -510,7 +510,7 @@ def leave_group():
         if username == group_admin_username:
             if gruop_type == 1:
                 services.delete_group(group_id)
-                socketio.emit('att_group', broadcast=True)
+                socketio.emit('att_group')
                 return jsonify({'status': 'success', 'message': 'Você saiu do grupo e ele foi excluído'}), 200
             else:
                 new_ghu = services.change_group_creator_randomly(group_id)
