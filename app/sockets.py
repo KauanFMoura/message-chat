@@ -54,7 +54,7 @@ def handle_message(data):
     sender = data['sender']
     receiver = data['receiver']
     message = data['message']
-    time_sent = data['time_sent']
+    timestamp = data['timestamp']
     uuid = data['uuid']
     sid_receiver = connected_users.get(receiver, {}).get('sid')
 
@@ -69,11 +69,11 @@ def handle_message(data):
         sender_id = services.get_user_by_username(sender).usu_id
 
     if sid_receiver:
-        emit('private_message', {'sender': sender, 'message': message, 'uuid': uuid}, to=sid_receiver)
+        emit('private_message', {'sender': sender, 'message': message}, to=sid_receiver)
 
     print(f'{sender} sent a private message to {receiver}')
     # Registrando mensagem no banco de dados
-    services.register_private_message(sender_id, receiver_id, message, time_sent, uuid)
+    services.register_private_message(sender_id, receiver_id, message, timestamp, uuid)
 
 
 @socketio.on('group_message')

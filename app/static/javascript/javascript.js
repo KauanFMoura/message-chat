@@ -63,6 +63,23 @@ window.onload = function () {
 let selectionMode = false;
 let selectedContacts = [];
 
+function getProfileImageURL(data) {
+    if ('profileImage' in data){
+        if (data['profileImage'] != null){
+            return data['profileImage'];
+        } else {
+            return defaultProfileImage;
+        }
+    } else if ('imageURL' in data) {
+        if (data['imageURL'] != null){
+            return data['imageURL'];
+        } else {
+            return defaultGroupImage;
+        }
+    }
+}
+
+
 function toggleMenuContatos() {
     var menuContato = document.getElementById('menu-contact');
     var menuConversas = document.getElementById('menu-conversas');
@@ -166,10 +183,11 @@ function toogleGroupEntrada(group_id, justUpdate) {
         group.requests.forEach(request => {
             const requestDiv = document.createElement('div');
             let user = users[request];
+
             requestDiv.classList.add('contact');
             requestDiv.innerHTML = `
                 <img class="contact-profile"
-                    src="${user.profileImage}" alt="" />
+                    src="${getProfileImageURL(user)}" alt="" />
                 <div class="contact-detail">
                     <div class="contact-username">${request}</div>
                 </div>
@@ -217,6 +235,15 @@ function hideDetails() {
     }
     hideEntryRequests();
 }
+
+function getRandomHexColor() {
+    // Gera um número aleatório entre 0 e 16777215 (0xFFFFFF)
+    const randomNum = Math.floor(Math.random() * 16777215);
+    // Converte o número para uma string hexadecimal e preenche com zeros à esquerda se necessário
+    const hexColor = `#${randomNum.toString(16).padStart(6, '0')}`;
+    return hexColor;
+}
+
 
 function showDetails(type, keyValue) {
     var detailArea = document.getElementById('detail-area');
@@ -300,6 +327,7 @@ function updateUserConversations(menuConversas, conversas, data, currentUser, of
             let user = data[username];
             let usuarioDiv = getChatDiv(conversas, username, 'user');
             users[username] = user;
+            users[username]['color'] = getRandomHexColor();
 
             if (usuarioDiv) {
                 updateOnlineStatus(usuarioDiv, user);
@@ -327,13 +355,14 @@ function updateOnlineStatus(usuarioDiv, user) {
     }
 }
 
+
 function createUserDiv(menuConversas, user, username, currentUser) {
     const div = document.createElement('div');
     div.classList.add('msg');
     if (user.online) div.classList.add('online');
     div.dataset.user = username;
     div.innerHTML = `
-        <img class="msg-profile" src="${user.profileImage}" alt="" />
+        <img class="msg-profile" src="${getProfileImageURL(user)}" alt="" />
         <div class="msg-detail">
             <div class="msg-username">${user.displayName}</div>
         </div>
@@ -398,6 +427,55 @@ function createMessageElement(message, username) {
     }
 }
 
+function getInitials(name) {
+    name = name.trim();
+    let firstInitial = name[0];
+    let lastSpaceIndex = name.lastIndexOf(" ");
+    let lastInitial = lastSpaceIndex !== -1 ? name[lastSpaceIndex + 1] : name[name.length - 1];
+    return (firstInitial + lastInitial).toUpperCase();
+}
+
+function createGroupMessageElement(message, username) {
+    let sender = message.sender;
+    let timestamp = message.timestamp;
+    let messageContent = message.message;
+    let messageClass = 'chat-msg';
+
+    let isMessageOwner = sender === username;
+
+    if (isMessageOwner) {
+        messageClass += ' owner';
+    }
+
+    let messageElement =
+           ` <div class="${messageClass}">
+            <div class="chat-msg-profile">`
+
+    if (!isMessageOwner){
+        if (users[sender]['profileImage'] == null){
+            messageElement += `<div class="user-icon" style="background-color: ${users[sender]['color']}">${getInitials(users[sender].displayName)}</div>`
+    }   else {
+            messageElement += `<img class="chat-msg-img" src="${users[sender].profileImage}" alt="" />`
+        }
+    }
+
+
+    messageElement += `
+                <div class="chat-msg-date">Mensagem enviada ${timestamp}</div>
+            </div>
+            <div class="chat-msg-content">
+                <div class="chat-msg-text">`
+    if (!isMessageOwner){
+        messageElement += `<div class="chat-msg-username" style="color: ${users[sender]['color']}">${users[sender].displayName}</div>`
+    }
+    messageElement +=
+    `${messageContent}</div>
+            </div>
+        </div>
+        `;
+    return messageElement;
+}
+
 function handleUserClick(div, username, displayName) {
     hideDetails();
 
@@ -421,6 +499,7 @@ function handleUserClick(div, username, displayName) {
 
     document.dispatchEvent(new CustomEvent('privateChatStarted', { detail: { otherUser: username } }));
     hideDetails();
+    chatAreaMainDiv.lastElementChild.scrollIntoView({behavior: 'smooth'});
 }
 
 function saveCurrentChatState(keyValue, chatAreaMainDiv, inputText) {
@@ -462,7 +541,7 @@ function createGroupDiv(menuConversas, group, group_id, currentUser) {
     div.classList.add('msg');
     div.dataset.group = group_id;
     div.innerHTML = `
-        <img class="msg-profile" src="${group.imageURL}" alt="" />
+        <img class="msg-profile" src="${getProfileImageURL(group)}" alt="" />
         <div class="msg-detail">
             <div class="msg-username">${group.name}</div>
             <div class="group-action-buttons"></div>
@@ -483,6 +562,9 @@ function updateGroupConversations(menuConversas, conversas, data, currentUser) {
     for (let group_id in data) {
         let group = data[group_id];
         let groupDiv = getChatDiv(conversas, group_id, 'group');
+        if (!group_id in groups){
+            groups[group_id] = group;
+        }
         groups[group_id] = group;
 
         if (groupDiv) {
@@ -502,34 +584,12 @@ function initializeGroupChatStates(group_id, group) {
 
     if (group['messages']) {
         group['messages'].forEach(message => {
-            const messageElement = createGroupMessageElement(message);
+            const messageElement = createGroupMessageElement(message, currentUser);
             groups[group_id]['chatState']['chat-area-main'] += messageElement;
         });
     }
 }
 
-function createGroupMessageElement(message) {
-    let sender = message.sender;
-    let timestamp = message.timestamp;
-    let messageContent = message.message;
-    let messageClass = 'chat-msg';
-
-    if (sender !== currentUser) {
-        messageClass += ' owner';
-    }
-
-    return `
-        <div class="${messageClass}">
-            <div class="chat-msg-profile">
-                <img class="chat-msg-img" src="${users[sender]['profileImage']}" alt="" />
-                <div class="chat-msg-date">Mensagem enviada ${timestamp}</div>
-            </div>
-            <div class="chat-msg-content">
-                <div class="chat-msg-text">${messageContent}</div>
-            </div>
-        </div>
-    `;
-}
 
 function handleGroupClick(div, group, group_id, currentUser) {
     hideDetails();
@@ -550,7 +610,7 @@ function handleGroupClick(div, group, group_id, currentUser) {
     restoreChatState(group_id, chatAreaMainDiv, inputText);
 
     document.getElementById('chat-area-title').innerText = group.name;
-    document.getElementById('chat-user-image').src = group.imageURL;
+    document.getElementById('chat-user-image').src = getProfileImageURL(group);
 
     lastSelectedGroupDiv = div;
     div.classList.add('active');
@@ -569,7 +629,7 @@ function handleGroupClick(div, group, group_id, currentUser) {
         requestStatus.innerText = 'Solicitação pendente';
         actionButtonsDiv.appendChild(requestStatus);
     }
-
+    chatAreaMainDiv.lastElementChild.scrollIntoView({behavior: 'smooth'});
     document.dispatchEvent(new CustomEvent('groupChatStarted', { detail: { groupName: group.name } }));
 }
 
@@ -631,7 +691,7 @@ function showGroupDetails(group_id) {
     const subtitleElement = detailArea.querySelector('.detail-subtitle');
     subtitleElement.textContent = `Created by ${group.admin}`;
     let imgProfileGroup = document.getElementById('detail-group-icon');
-    imgProfileGroup.src = group.imageURL;
+    imgProfileGroup.src = getProfileImageURL(group);
 
     // Exibe a área de detalhes de pedidos de entrada
     const detailButtons = detailArea.querySelector('.detail-buttons');
@@ -744,7 +804,7 @@ function showUserDetails(username){
     subtitleElement.textContent = `${username}`;
 
     let imgProfileGroup = document.getElementById('detail-group-icon');
-    imgProfileGroup.src = user.profileImage;
+    imgProfileGroup.src = getProfileImageURL(user);
 }
 
 // Função para aceitar pedido de entrada no grupo
@@ -886,7 +946,7 @@ function updateGroupRequests(data){
             requestDiv.classList.add('contact');
             requestDiv.innerHTML = `
                 <img class="contact-profile"
-                    src="${user.profileImage}" alt="" />
+                    src="$" alt="" />
                 <div class="contact-detail">
                     <div class="contact-username">${request_username}</div>
                 </div>
@@ -904,3 +964,4 @@ function updateGroupRequests(data){
         document.getElementById('detail-pedidos-group').appendChild(requestDiv);
     }
 }
+
