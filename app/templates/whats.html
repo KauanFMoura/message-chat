@@ -285,29 +285,33 @@
     });
 
     // Função para enviar mensagem de grupo ao servidor
-    const sendGroupMessage = (message) => {
+    const sendGroupMessage = (message, uuid=null) => {
         let currentTime = new Date().toLocaleTimeString();
         socket.emit('group_message', {
             sender: currentUser,
             group_id: currentChatTarget, // Variável que armazena o nome do grupo atual
             message: message,
-            time_sent: currentTime
+            time_sent: currentTime,
+            uuid: uuid
         });
 
-
         let messageClass = 'chat-msg owner';
-        const messageElement = `
-        <div class="${messageClass}">
-            <div class="chat-msg-profile">
-                <img class="chat-msg-img" src="icone_usuario.png" alt="" />
-                <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
-            </div>
-            <div class="chat-msg-user">Nome do Usuário</div>
-            <div class="chat-msg-content">
-                <div class="chat-msg-text">${message}</div>
-            </div>
-        </div>
-        `;
+        if (uuid !== null){
+            const messageElement = `
+                <div class="${messageClass}">
+                    <div class="chat-msg-profile">
+                        <img class="chat-msg-img" src="icone_usuario.png" alt="" />
+                        <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
+                    </div>
+                    <div class="chat-msg-user">Nome do Usuário</div>
+                    <div class="chat-msg-content">
+                        <div class="chat-msg-text">${message}</div>
+                    </div>
+                </div>
+            `;
+        }else{
+
+        }
 
         // Adiciona a mensagem ao chat atual
         let chatTarget = document.querySelector('.chat-area-main');
@@ -319,30 +323,48 @@
             lastMessageElement.scrollIntoView({behavior: 'smooth'});
         }
         groups[currentChatTarget]['chatState']['chat-area-main'] = chatTarget.innerHTML;
-        
+
     };
 
     // Função para enviar mensagem ao servidor
-    const sendMessage = (message) => {
-        let currentTime = new Date().toLocaleTimeString();
+    const sendMessage = (message, uuid=null) => {
+        let currentDateTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
         socket.emit('private_message', {
             sender: currentUser,
             receiver: lastSelectedUser,
             message: message,
-            time_sent: currentTime
+            time_sent: currentDateTime,
+            uuid: uuid
         });
-
         let messageClass = 'chat-msg owner';
-        const messageElement = `
+
+        if (uuid !== null){
+            const messageElement = `
+                <div class="${messageClass}">
+                    <div class="chat-msg-profile">
+                        <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
+                    </div>
+                    <div class="chat-msg-content">
+                        <div class="chat-msg-text">${message}</div>
+                    </div>
+                </div>
+            `;
+        }else{
+            const downloadElement = `
             <div class="${messageClass}">
                 <div class="chat-msg-profile">
-                    <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
+                    <img class="chat-msg-img" src="${users[sender].profileImage}" alt="" />
+                    <div class="chat-msg-date">Mensagem enviada ${time_sent}</div>
                 </div>
+                <div class="chat-msg-user">Nome do Usuário</div>
                 <div class="chat-msg-content">
-                    <div class="chat-msg-text">${message}</div>
+                    <div class="chat-msg-text">
+                        <a href="/api/get_file/${uuid}" class="download-link">Clique aqui para baixar o arquivo</a>
+                    </div>
                 </div>
             </div>
-        `;
+            `;
+        }
 
         // Adiciona a mensagem ao chat atual
         let chatTarget = document.querySelector('.chat-area-main');
@@ -390,6 +412,7 @@
         let message = data.message;
         let sender = data.sender;
         let group_id = data.group_id;
+        let uuid = data.uuid;
         let time_sent = data.time_sent;
         let messageClass = 'chat-msg';
 
@@ -399,19 +422,23 @@
         if (sender === currentChatTarget) {
             messageClass += ' owner';
         }
-        const messageElement = `
-        <div class="${messageClass}">
-            <div class="chat-msg-profile">
-                <img class="chat-msg-img" src="${users[sender].profileImage}" alt="" />
-                <div class="chat-msg-date">Mensagem enviada ${time_sent}</div>
-            </div>
-            <div class="chat-msg-user">Nome do Usuário</div>
-            <div class="chat-msg-content">
-                <div class="chat-msg-text">${message}</div>
-            </div>
-        </div>
-        `;
 
+        if (uuid !== null){
+            const messageElement = `
+            <div class="${messageClass}">
+                <div class="chat-msg-profile">
+                    <img class="chat-msg-img" src="${users[sender].profileImage}" alt="" />
+                    <div class="chat-msg-date">Mensagem enviada ${time_sent}</div>
+                </div>
+                <div class="chat-msg-user">Nome do Usuário</div>
+                <div class="chat-msg-content">
+                    <div class="chat-msg-text">${message}</div>
+                </div>
+            </div>
+            `;
+        }else{
+
+        }
 
         // Atualiza o estado do chat atual
         if (!groups[group_id]['chatState']) {
@@ -437,19 +464,25 @@
     socket.on('private_message', (data) => {
         let message = data.message
         let sender = data.sender
+        let uuid = data.uuid
         const time_sent = data.time_sent
         let messageClass = 'chat-msg';
 
-        const messageElement = `
-            <div class="${messageClass}">
-                <div class="chat-msg-profile">
-                    <div class="chat-msg-date">Message seen ${time_sent}</div>
+        if (uuid !== null){
+            const messageElement = `
+                <div class="${messageClass}">
+                    <div class="chat-msg-profile">
+                        <div class="chat-msg-date">Message seen ${time_sent}</div>
+                    </div>
+                    <div class="chat-msg-content">
+                        <div class="chat-msg-text">${message}</div>
+                    </div>
                 </div>
-                <div class="chat-msg-content">
-                    <div class="chat-msg-text">${message}</div>
-                </div>
-            </div>
-        `;
+            `;
+        }else{
+
+        }
+
 
         if (!users[sender]['chatState']) {
             users[sender]['chatState'] = {'chat-area-main': '', 'inputText': ''};

@@ -849,6 +849,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 console.log('File uploaded successfully:', data.filename);
+                sendMessage('data.filename', data.filename);
             })
             .catch(error => {
                 console.error('Error uploading file:', error);
