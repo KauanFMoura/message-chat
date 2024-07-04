@@ -286,7 +286,7 @@
 
     // Função para enviar mensagem de grupo ao servidor
     const sendGroupMessage = (message) => {
-        let currentTime = new Date().toLocaleTimeString();
+        let currentTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
         socket.emit('group_message', {
             sender: currentUser,
             group_id: currentChatTarget, // Variável que armazena o nome do grupo atual
@@ -324,7 +324,7 @@
 
     // Função para enviar mensagem ao servidor
     const sendMessage = (message) => {
-        let currentTime = new Date().toLocaleTimeString();
+        let currentTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
         socket.emit('private_message', {
             sender: currentUser,
             receiver: lastSelectedUser,

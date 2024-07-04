@@ -1,7 +1,7 @@
 from app import socketio, connected_users, group_rooms, services
 from flask import session, jsonify, request
-from flask_socketio import emit, join_room, leave_room, disconnect
-from datetime import datetime
+from flask_socketio import emit, disconnect
+
 import threading
 
 
@@ -87,11 +87,25 @@ def handle_group_message(data):
         # Se o grupo não existe, retorna um erro ou faz alguma outra ação necessária
         return jsonify({'status': 'error', 'message': 'Grupo não existe'}), 404
 
-    # TODO: Registrar no banco
+    if sender not in group_rooms[group_id]:
+        # Se o usuário não está no grupo
+        return jsonify({'status': 'error', 'message': 'Usuário não está no grupo'}), 403
 
-    room_list = [connected_users[user]['sid'] for user in group_rooms[group_id]]
+    room_list = [connected_users[user]['sid'] for user in group_rooms[group_id] if user != sender]
+
+    # Se a lista não estiver vazia, emito a mensagem (é necessário, pois se a lista está vazia, o Flask envia a mensagem para o sender)
+    if room_list:
+        emit('group_message', {'sender': sender, 'message': message, 'group_id': group_id, "time_sent": time_sent},
+             room=room_list)
+
     # Emite a mensagem para o grupo
     print(f'{sender} sent a group message to {group_id}')
-    emit('group_message', {'sender': sender, 'message': message, 'group_id': group_id, "time_sent": time_sent}, room=room_list)
 
+    # Tentar pegar o ID com base nos usuarios conectados
+    if sender in connected_users.keys():
+        sender_id = connected_users[sender]['id']
+    else:
+        # Se não conseguir, pega o ID do banco
+        sender_id = services.get_user_by_username(sender).usu_id
 
+    services.register_group_message(group_id, sender_id, message, time_sent, None)
