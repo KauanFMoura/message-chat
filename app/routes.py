@@ -129,21 +129,6 @@ def logout():
     return redirect(url_for('index'))
 
 
-@app.route('/download/<uuid>', methods=['GET'])
-def download_file():
-    uuid = data.get('uuid')
-
-    filename = f"{uuid}.txt"  # Suponha que os arquivos foram salvos como UUID.txt
-
-    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-
-    if os.path.isfile(file_path):
-        # Retornar o arquivo para o cliente
-        return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
-    else:
-        return jsonify({'error': 'File not found'})
-
-
 @app.route('/upload', methods=['POST'])
 def upload_file():
     if 'file' not in request.files:
@@ -159,9 +144,7 @@ def upload_file():
 
     # Salvar o arquivo no diretório de uploads
     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-
-    services.register_private_message(session.get('user').get('id'), session.get('user').get('id'), 'Envio de Arquivo',
-                                      datetime.now(), filename)
+    services.create_file(filename, file.filename, file_extension)
 
     return jsonify({'filename': filename})
 
@@ -239,7 +222,6 @@ def get_people(server_request=False):
 
 @app.route('/data/<filename>')
 def uploaded_file(filename):
-    # Aqui você pode implementar o envio do arquivo usando send_from_directory
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 
