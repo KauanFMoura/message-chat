@@ -30,6 +30,7 @@ with app.app_context():
 
 # Dicionário para manter o controle das salas (rooms) de mensagens privadas
 group_rooms = {}
+server_route = {}
 
 
 class ObservableDict(dict):

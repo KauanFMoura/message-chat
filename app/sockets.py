@@ -76,7 +76,7 @@ def handle_message(data):
     }
 
     if sid_receiver:
-        emit('private_message', message_data, to=sid_receiver)
+        emit('private_message', message_data, room=sid_receiver)
 
     if uuid:
         print(f'{sender} sent a private message to {receiver} with file')
