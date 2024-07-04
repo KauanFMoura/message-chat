@@ -7,7 +7,7 @@ class Config:
     current_dir = os.path.abspath(os.path.dirname(__file__))
 
     # Define o diretório de upload como diretório atual + /data
-    UPLOAD_FOLDER = 'data/'
+    UPLOAD_FOLDER = os.path.join(current_dir, 'data')
 
     SECRET_KEY = 'secret!'
     SQLALCHEMY_DATABASE_URI = 'mysql://admin-whatsut:sd-utfpr-2024@localhost/whatsut'
