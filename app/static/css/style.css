@@ -673,11 +673,7 @@ html {
     font-weight: 600;
 }
 .chat-area-main {
-    align-items: center;
-    justify-content: center;
-    display: flex;
     flex-grow: 1;
-    position: relative;
 }
 
 .chat-msg-img {
