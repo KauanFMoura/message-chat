@@ -19,7 +19,8 @@ ENV DB_NAME=whatsut
 ENV INSTANCE_UNIX_SOCKET=/cloudsql/ancient-spark-422614-h6:southamerica-east1:pi1
 ENV SECRET_KEY=x29s0WiWZQOT0bBXoA8aJpISmXPBYAeW
 ENV CLOUD_STORAGE_BUCKET=whats-ut
-
+ENV FLASK_APP=app.py
+ENV FLASK_ENV=development
 
 # Definir a variável de ambiente para dizer ao Flask para rodar no modo produção
 ENV FLASK_ENV=production
