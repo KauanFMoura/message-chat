@@ -512,7 +512,7 @@ function createGroupMessageElement(message, username) {
     chatMessageTextDiv.className = 'chat-msg-text';
 
     if(file_uuid !== null){
-        chatMessageTextDiv.textContent = `<a href="/api/get_file/${file_uuid}" class="download-link">${messageContent}</a>`;
+        chatMessageTextDiv.innerHTML = `Arquivo: <a href="/api/get_file/${file_uuid}" class="download-link">${messageContent}</a>`;
     } else {
         chatMessageTextDiv.textContent = messageContent;
     }

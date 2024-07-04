@@ -30,13 +30,17 @@
             max-width: 850px;
             background-color: #dad6d6;
             box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.451);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 35% 35% 65%;
+            gap: 20px;
+            padding: 20px;
         }
 
         header {
             background-color: #0086ff;
             color: white;
             text-align: center;
-            align-items: center;
             padding: 1rem 0;
             width: 100%;
         }
@@ -51,12 +55,11 @@
             font-weight: bold;
         }
 
-        .container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-template-rows: auto auto;
-            gap: 20px;
-            margin: 20px;
+        .estatisticas, .usuarios, .grupos, .admin-usu-gru {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
         h1, h2 {
@@ -116,13 +119,6 @@
         button:hover {
             background-color: #817d7d;
         }
-
-        .estatisticas, .usuarios, .grupos, .admin-usu-gru {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
     </style>
 </head>
 <body>
@@ -131,42 +127,33 @@
         <a href="/logout">Sair</a>
     </header>
     <div id="body">
-        <div class="container">
-            <div class="estatisticas">
-                <h2>Estatísticas do Servidor</h2>
-                <ul>
-                    <li>Total de Usuários: {{ total_users }}</li>
-                    <li>Usuários Logados: {{ logged_in_users }}</li>
-                    <li>Total de Mensagens: {{ total_messages }}</li>
-                </ul>
-            </div>
-            <div class="usuarios">
-                <h2>Usuários</h2>
-                <ul>
-                    {% for user in users %}
-                    <li>{{ user.username }} {% if user.is_logged_in %}(Online){% endif %} {% if user.is_admin %}(Admin){% endif %}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-            <div class="grupos">
-                <h2>Grupos</h2>
-                <ul>
-                    {% for group in groups %}
-                    <li>{{ group.name }} (Criado por {{ group.creator_id }})</li>
-                    {% endfor %}
-                </ul>
-            </div>
-            <div class="admin-usu-gru">
-                <h2>Administração de Usuários e Grupos</h2>
-                <form action="/ban_user" method="POST">
-                    <input type="text" name="username" placeholder="Nome de usuário para banir">
-                    <button type="submit">Banir Usuário</button>
-                </form>
-                <form action="/ban_group" method="POST">
-                    <input type="text" name="group_name" placeholder="Nome do grupo para banir">
-                    <button type="submit">Banir Grupo</button>
-                </form>
-            </div>
+        <div class="estatisticas">
+            <h2>Estatísticas do Servidor</h2>
+            <ul>
+                <li>Total de Usuários: {{ total_users }}</li>
+                <li>Usuários Logados: {{ logged_in_users }}</li>
+                <li>Total de Mensagens: {{ total_messages }}</li>
+            </ul>
+        </div>
+        <div class="usuarios">
+            <h2>Usuários</h2>
+            <ul>
+                {% for user in users %}
+                <li>{{ user.username }} {% if user.is_logged_in %}(Online){% endif %} {% if user.is_admin %}(Admin){% endif %}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="grupos">
+            <h2>Grupos</h2>
+            <ul>
+                {% for group in groups %}
+                <li>{{ group.name }} (Criado por {{ group.creator_id }})</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="admin-usu-gru">
+            <h2>Logs do Servidor</h2>
+            <!-- Área para logs do servidor -->
         </div>
     </div>
 </body>

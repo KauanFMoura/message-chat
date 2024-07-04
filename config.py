@@ -11,6 +11,8 @@ class Config:
 
     SECRET_KEY = 'secret!'
     SQLALCHEMY_DATABASE_URI = 'mysql://admin-whatsut:sd-utfpr-2024@localhost/whatsut'
+    DEFAULT_GROUP_IMAGE = 'data/8dea7b4b-29f4-4bc2-bed1-a6496589b6e9.jpg'
+    DEFAULT_PROFILE_IMAGE = 'data/0b203bc0-c286-4847-ba2d-7a0f9790fe03.jpg'
 
     '''ENV = 'production'
     DEBUG = False
