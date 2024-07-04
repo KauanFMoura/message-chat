@@ -46,6 +46,7 @@ class GroupHasUser(db.Model):
     ghu_is_admin = db.Column(db.Boolean, nullable=False)
     ghu_entry_date = db.Column(db.DateTime, nullable=False)
     ghu_accepted_request = db.Column(db.Boolean, nullable=False)
+    ghu_active = db.Column(db.Boolean, nullable=False)
 
 
 class GroupMessage(db.Model):

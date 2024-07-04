@@ -62,7 +62,7 @@ def create_group(gp_name, gp_creator, gp_description, gp_image_uuid, gp_exclusio
 
 def add_user_to_group(ghu_group_id, ghu_user_id, ghu_is_admin, ghu_entry_date):
     group_has_user = GroupHasUser(ghu_group_id=ghu_group_id, ghu_user_id=ghu_user_id, ghu_is_admin=ghu_is_admin,
-                                  ghu_entry_date=ghu_entry_date)
+                                  ghu_entry_date=ghu_entry_date, ghu_active=True)
     db.session.add(group_has_user)
     db.session.commit()
     return group_has_user
@@ -166,7 +166,8 @@ def get_groups_with_users(gp_id=None):
                 'member_username': member_username,  # Inclui o nome de usuário do membro
                 'is_admin': group_has_user.ghu_is_admin if group_has_user else None,
                 'entry_date': group_has_user.ghu_entry_date if group_has_user else None,
-                'accepted_request': group_has_user.ghu_accepted_request if group_has_user else None
+                'accepted_request': group_has_user.ghu_accepted_request if group_has_user else None,
+                'active': group_has_user.ghu_active if group_has_user else None
             }
         })
 
@@ -331,16 +332,21 @@ def get_all_users(include_profile_image=False):
 
 
 def register_user_on_group(ghu_group_id, ghu_user_id, ghu_is_admin, ghu_entry_date, ghu_accepted_request):
-    group_has_user = GroupHasUser(ghu_group_id=ghu_group_id, ghu_user_id=ghu_user_id, ghu_is_admin=ghu_is_admin,
-                                  ghu_entry_date=ghu_entry_date, ghu_accepted_request=ghu_accepted_request)
+    group_has_user = get_group_has_user(ghu_user_id, ghu_group_id, True)
+    if group_has_user:
+        group_has_user.ghu_active = True
+        group_has_user.ghu_entry_date = ghu_entry_date
+    else:
+        group_has_user = GroupHasUser(ghu_group_id=ghu_group_id, ghu_user_id=ghu_user_id, ghu_is_admin=ghu_is_admin,
+                                      ghu_entry_date=ghu_entry_date, ghu_accepted_request=ghu_accepted_request, ghu_active=True)
     db.session.add(group_has_user)
     db.session.commit()
     return group_has_user
 
 
-def get_group_has_user(user_id, group_id):
+def get_group_has_user(user_id, group_id, obj=False):
     result = GroupHasUser.query.filter_by(ghu_group_id=group_id, ghu_user_id=user_id).first()
-    if result:
+    if result and not obj:
         return result.__dict__
     return result
 
@@ -356,7 +362,8 @@ def edit_group_has_user(ghu_group_id, ghu_user_id, ghu_is_admin, ghu_entry_date,
 
 def remove_group_has_user(ghu_group_id, ghu_user_id):
     group_has_user = GroupHasUser.query.filter_by(ghu_group_id=ghu_group_id, ghu_user_id=ghu_user_id).first()
-    db.session.delete(group_has_user)
+    group_has_user.ghu_active = False
+    db.session.add(group_has_user)
     db.session.commit()
     return group_has_user
 

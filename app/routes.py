@@ -97,9 +97,7 @@ def chat():
         return redirect(url_for('index'))
 
     try:
-        print(session)
         user = session['user']
-        print(user)
         username = session['username']
         if username not in connected_users.keys():
             connected_users[username] = user
@@ -108,7 +106,6 @@ def chat():
                                defaultGroupImage=app.config['DEFAULT_GROUP_IMAGE'],
                                defaultProfileImage=app.config['DEFAULT_PROFILE_IMAGE'])
     except Exception as e:
-        print(e)
         return redirect(url_for('index'))
 
 
@@ -133,14 +130,17 @@ def upload_file():
     if file.filename == '':
         return jsonify({'error': 'No selected file'})
 
+    original_name = file.filename
+
     _, file_extension = os.path.splitext(file.filename)
-    filename = str(uuid.uuid4()) + file_extension
+    file_uuid = str(uuid.uuid4())
+    filename = file_uuid + file_extension
 
     # Salvar o arquivo no diretório de uploads
     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-    services.create_file(filename, file.filename, file_extension)
+    services.create_file(file_uuid, file.filename, file_extension)
 
-    return jsonify({'filename': filename})
+    return jsonify({'file_uuid': file_uuid, 'filename': original_name})
 
 
 @app.route('/api/group', methods=['GET'])
@@ -254,7 +254,7 @@ def get_groups(server_request=False):
         if group['group_active']:
             if user['accepted_request'] and user['member_username'] not in groups[group_id]['users']:
                 groups[group_id]['users'].append(user['member_username'])
-            elif user['member_username'] not in groups[group_id]['requests']:
+            elif user['member_username'] not in groups[group_id]['requests'] and user['active']:
                 groups[group_id]['requests'].append(user['member_username'])
 
     if server_request:
@@ -308,44 +308,53 @@ def create_group():
 
 @app.route('/api/accept_request', methods=['POST'])
 def accept_request():
-    try:
-        username = session.get('username')
-        if not username:
-            return jsonify({'status': 'error', 'message': 'Usuário não autenticado'}), 401
-        data = request.get_json()
-        group_id = data.get('group_id')
-        request_username = data.get('username')
+    #try:
+    username = session.get('username')
+    if not username:
+        return jsonify({'status': 'error', 'message': 'Usuário não autenticado'}), 401
+    data = request.get_json()
+    group_id = data.get('group_id')
+    request_username = data.get('username')
 
-        groups = get_group(group_id)
-        group = groups[int(group_id)]
+    groups = get_group(group_id)
+    group = groups[int(group_id)]
 
-        if group:
-            if group['admin'] != username:
-                return jsonify({'status': 'error', 'message': 'Somente o administrador pode aceitar pedidos'}), 403
+    if group:
+        if group['admin'] != username:
+            return jsonify({'status': 'error', 'message': 'Somente o administrador pode aceitar pedidos'}), 403
 
-            request_user = services.get_user_by_username(request_username)
-            if not request_user:
-                return jsonify({'status': 'error', 'message': 'Usuário solicitante não existe'})
+        request_user = services.get_user_by_username(request_username)
+        if not request_user:
+            return jsonify({'status': 'error', 'message': 'Usuário solicitante não existe'})
 
-            ghu = services.get_group_has_user(request_user.usu_id, group_id)
-            if not ghu:
-                return jsonify({'status': 'error', 'message': 'Usuário não solicitou a entrada ao grupo'}), 404
+        ghu = services.get_group_has_user(request_user.usu_id, group_id)
+        if not ghu:
+            return jsonify({'status': 'error', 'message': 'Usuário não solicitou a entrada ao grupo'}), 404
 
-            if ghu['ghu_accepted_request']:
-                return jsonify({'status': 'error', 'message': 'Usuário já é membro do grupo'}), 404
-            else:
-                new_ghu = services.edit_group_has_user(group_id, request_user.usu_id, False, datetime.now(), True)
-                if new_ghu:
-                    group['requests'].remove(request_username)
-                    group['users'].append(request_username)
-                    socketio.emit('group_update', groups)
-                    return jsonify({'status': 'success', 'message': 'Pedido aceito com sucesso'}), 200
+        if ghu['ghu_accepted_request']:
+            return jsonify({'status': 'error', 'message': 'Usuário já é membro do grupo'}), 404
         else:
-            return jsonify({'status': 'error', 'message': 'Grupo não encontrado'}), 404
+            new_ghu = services.edit_group_has_user(group_id, request_user.usu_id, False, datetime.now(), True)
+            if new_ghu:
+                group['requests'].remove(request_username)
+                group['users'].append(request_username)
+                if request_username in connected_users.keys():
+                    connected_users[request_username]['groups'].append(int(group_id))
+                    if group_id in group_rooms.keys():
+                        group_rooms[group_id].append(request_username)
 
-    except Exception as e:
+                room_list = [connected_users[user]['sid'] for user in group_rooms[int(group_id)] if user != username]
+
+                if room_list:
+                    socketio.emit('group_update', {group_id: group}, room=room_list)
+
+                return jsonify({'status': 'success', 'message': 'Pedido aceito com sucesso', 'groups': {group_id: group}}), 201
+    else:
+        return jsonify({'status': 'error', 'message': 'Grupo não encontrado'}), 404
+
+'''    except Exception as e:
         print(f"Erro ao aceitar pedido de entrada: {e}")
-        return jsonify({'status': 'error', 'message': 'Erro ao aceitar pedido de entrada'}), 500
+        return jsonify({'status': 'error', 'message': 'Erro ao aceitar pedido de entrada'}), 500'''
 
 
 @app.route('/api/decline_request', methods=['POST'])
@@ -436,7 +445,9 @@ def get_file(uuid):
     if not file:
         return jsonify({'error': 'Arquivo não encontrado'}), 404
 
-    return send_file(file, as_attachment=True, download_name=file.file_name)
+    file_path = app.config['UPLOAD_FOLDER'] + '/' + file.file_uuid + file.file_ext
+
+    return send_file(file_path, as_attachment=True, download_name=file.file_name)
 
 
 @app.route('/api/request_group_entry', methods=['POST'])
@@ -460,7 +471,7 @@ def request_group_entry():
         if ghu:
             if ghu['ghu_accepted_request']:
                 return jsonify({'status': 'error', 'message': 'Você já é membro deste grupo'}), 400
-            else:
+            elif ghu['ghu_active']:
                 return jsonify({'status': 'error', 'message': 'Você já solicitou entrada neste grupo'}), 400
 
         new_ghu = services.register_user_on_group(group_id, user_id, False, datetime.now(), False)
@@ -469,7 +480,7 @@ def request_group_entry():
             socketio.emit('new_entry_request', {"id": group_id, "username": username},
                           to=connected_users[group_creator_username]['sid'])
 
-        return jsonify({'status': 'success', 'message': 'Solicitação enviada'}), 404
+        return jsonify({'status': 'success', 'message': 'Solicitação enviada'}), 201
     except Exception as e:
         print(f"Erro ao solicitar entrada no grupo: {e}")
         return jsonify({'status': 'error', 'message': 'Erro ao solicitar entrada no grupo'}), 500
@@ -513,8 +524,9 @@ def leave_group():
                     socketio.emit('att_group')
                     return jsonify({'status': 'success', 'message': 'Você saiu do grupo e ele foi excluído'}), 200
 
+        group_updated = get_group(group_id)
         services.remove_group_has_user(group_id, user_id)
-        socketio.emit('att_group')
+        socketio.emit('group_update', {group: group_updated})
         return jsonify({'status': 'success', 'message': 'Saiu do Grupo'}), 404
     except Exception as e:
         print(f"Erro ao sair do grupo: {e}")

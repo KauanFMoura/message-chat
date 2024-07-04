@@ -250,6 +250,11 @@ html {
     flex-direction: column;
     margin-left: 10px;
 }
+
+#detail-recado {
+    margin-top: 0;
+}
+
 #detail-pessoal-username {
     font-size: 14px;
     font-weight: 600;
@@ -1391,7 +1396,7 @@ html {
 .menu-logout {
     display: none;
     position: absolute;
-    top: 20px; /* Ajusta a posição vertical */
+    top: 10px; /* Ajusta a posição vertical */
     left: auto;
     right: 4%; /* Ajusta a posição horizontal */
     background-color: var(--theme-bg-color);

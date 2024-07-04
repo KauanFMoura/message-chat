@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>WhatsTU</title>
+    <link rel="icon" href=" {{ url_for('static', filename='imgs/icone.ico') }}" type="image/x-icon">
+    <link rel="icon" href="caminho/para/seu/favicon.png" type="image/png">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/media-query.css') }}">
     <link rel="stylesheet"
@@ -234,7 +236,7 @@
                         </span>
                         <div>
                             <p class="title-detail">Recado</p>
-                            <p id="detail-pessoal-username"></p>
+                            <p id="detail-recado"></p>
                         </div>
                     </div>
                 </div>
@@ -312,7 +314,7 @@
     const messageForm = document.querySelector('.chat-area-footer');
     const chatAreaMain = document.querySelector('.chat-area-main');
     const chatHeader = document.querySelector('.chat-area-header');
-    const currentUserProfileImage = "{{ userProfileImage }}";
+    let currentUserProfileImage = "{{ userProfileImage }}";
     const defaultProfileImage = " {{ defaultProfileImage }}";
     const defaultGroupImage = " {{ defaultGroupImage }}";
     const currentUser = "{{ username }}";
@@ -320,11 +322,10 @@
 
     let lastSelectedUser = null;
 
-    if (currentUserProfileImage != null) {
-        document.getElementById('user-profile-image').src = currentUserProfileImage;
-    } else {
-        document.getElementById('user-profile-image').src = defaultProfileImage;
+    if (currentUserProfileImage === 'None') {
+        currentUserProfileImage = defaultProfileImage;
     }
+    document.getElementById('user-profile-image').src = currentUserProfileImage;
 
     document.addEventListener('privateChatStarted', function (event) {
         lastSelectedUser = event.detail.otherUser;
@@ -338,6 +339,10 @@
 
     socket.on('connect', () => {
         console.log('Connected to server');
+    });
+
+    socket.on('disconnect', () => {
+        socket.connect();
     });
 
     socket.on('group_created', (groups) => {
@@ -363,14 +368,14 @@
     });
 
     // Função para enviar mensagem de grupo ao servidor
-    const sendGroupMessage = (message, uuid=null) => {
+    const sendGroupMessage = (message, file_uuid=null) => {
         let currentTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
         let messageData = {
             sender: currentUser,
             group_id: currentChatTarget, // Variável que armazena o nome do grupo atual
             message: message,
             timestamp: currentTime,
-            uuid: uuid
+            file_uuid: file_uuid
         }
 
         socket.emit('group_message', messageData);
@@ -391,15 +396,19 @@
     };
 
     // Função para enviar mensagem ao servidor
-    const sendMessage = (message) => {
+    const sendMessage = (message, file_uuid=null) => {
         let currentTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
+
         let messageData = {
             sender: currentUser,
             receiver: lastSelectedUser,
             message: message,
             timestamp: currentTime,
-            uuid: uuid
+            file_uuid: file_uuid
         }
+
+        socket.emit('private_message', messageData);
+
 
         const messageElement = createMessageElement(messageData, currentUser);
 

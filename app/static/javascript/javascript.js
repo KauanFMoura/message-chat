@@ -168,14 +168,13 @@ function concludeSelection() {
     toggleSelectionMode(); // Sair do modo de seleção após concluir
 }
 
-function toogleGroupEntrada(group_id, justUpdate) {
+function toogleGroupEntrada(group_id, justUpdate=false) {
     let group = groups[group_id];
-    var groupEntrada = document.getElementById('detail-pedidos-group');
-    var detailGroup = document.getElementById('detail-group');
+    let groupEntrada = document.getElementById('detail-pedidos-group');
+    let detailGroup = document.getElementById('detail-group');
 
     // Limpa a lista de pedidos de entrada
     groupEntrada.innerHTML = '';
-
     if (groupEntrada.style.display === 'block' && !justUpdate) {
         groupEntrada.style.display = 'none';
         detailGroup.style.display = 'block';
@@ -218,7 +217,8 @@ function toogleGroupEntrada(group_id, justUpdate) {
 
 function detailsIsOpened(){
     let detailArea = document.getElementById('detail-area');
-    return detailArea.style.display === 'flex';
+    let detailAreaPessoal = document.getElementById('detail-area-pessoal');
+    return detailArea.style.display === 'flex' || detailAreaPessoal.style.display === 'flex';
 }
 
 function hideEntryRequests() {
@@ -232,8 +232,10 @@ function hideEntryRequests() {
 // Função para esconder detalhes do grupo
 function hideDetails() {
     const detailArea = document.getElementById('detail-area');
+    const detailAreaPessoal = document.getElementById('detail-area-pessoal');
     const detailGroup = document.getElementById('detail-group');
 
+    detailAreaPessoal.style.display = 'none';  // Esconde a área de detalhes
     detailArea.style.display = 'none';  // Esconde a área de detalhes
     if (detailGroup.style.display === 'none') {
         toogleGroupEntrada();
@@ -276,15 +278,14 @@ function showDetails(type, keyValue) {
 // Evento show detalhes pessoal
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelector('#config').addEventListener('click', function() {
-        var detailAreaUsuario = document.getElementById('detail-area-usuario');
-        var detailArea = document.getElementById('detail-area');
-        var detailAreaPessoal = document.getElementById('detail-area-pessoal');
-        if (detailAreaUsuario.style.display === 'none' || detailArea.style.display === '') {
-            detailAreaUsuario.style.display = 'flex';
-            detailAreaPessoal.style.display = 'none';
-            detailArea.style.display = 'none';
-        } else {
+        let detailAreaUsuario = document.getElementById('detail-area-usuario');
+        if (detailsIsOpened()){
+            hideDetails();
+        }
+        if (detailAreaUsuario.style.display === 'flex') {
             detailAreaUsuario.style.display = 'none';
+        } else {
+            detailAreaUsuario.style.display = 'flex';
         }
     });
 });
@@ -369,7 +370,6 @@ function updateUserConversations(menuConversas, conversas, data, currentUser, of
             document.getElementById('chat-header-contact-profile').classList.remove('online');
         }
     });
-
     hideDetails();
 }
 
@@ -423,14 +423,16 @@ function createMessageElement(message, username) {
     let sender = message.sender;
     let timestamp = message.timestamp;
     let messageContent = message.message;
-    let messageuuid = message.file;
+    let file_uuid = message.file_uuid;
 
     let messageClass = 'chat-msg';
+    let isMessageOwner = sender === username;
 
-    if (sender !== username) {
+    if (isMessageOwner) {
         messageClass += ' owner';
     }
-    if (messageuuid === null) {
+
+    if (file_uuid === null) {
         return `
                 <div class="${messageClass}">
                     <div class="chat-msg-profile">
@@ -449,7 +451,8 @@ function createMessageElement(message, username) {
                 </div>
                 <div class="chat-msg-content">
                     <div class="chat-msg-text">
-                        <a href="/api/get_file/${messageuuid}" class="download-link">Clique aqui para baixar o arquivo</a>
+                        <div class="chat-msg-text">Arquivo: <a href="/api/get_file/${file_uuid}" class="download-link">${messageContent}</a></div>
+                        
                     </div>
                 </div>
             </div>
@@ -469,41 +472,59 @@ function createGroupMessageElement(message, username) {
     let sender = message.sender;
     let timestamp = message.timestamp;
     let messageContent = message.message;
-    let messageClass = 'chat-msg';
+    let file_uuid = message.file_uuid;
 
+    let messageClass = 'chat-msg';
     let isMessageOwner = sender === username;
 
     if (isMessageOwner) {
         messageClass += ' owner';
     }
 
-    let messageElement =
-           ` <div class="${messageClass}">
-            <div class="chat-msg-profile">`
+    let newDiv = document.createElement('div');
+    newDiv.className = messageClass;
 
-    if (!isMessageOwner){
+    let chatMessageProfileDiv = document.createElement('div');
+    chatMessageProfileDiv.className = 'chat-msg-profile';
+
+    let chatProfileImgDiv = document.createElement('div');
+
+    if(!isMessageOwner){
         if (users[sender]['profileImage'] == null){
-            messageElement += `<div class="user-icon" style="background-color: ${users[sender]['color']}">${getInitials(users[sender].displayName)}</div>`
+            chatProfileImgDiv.className = 'user-icon';
+            chatProfileImgDiv.style.backgroundColor = users[sender]['color'];
+            chatProfileImgDiv.textContent = getInitials(users[sender].displayName);
     }   else {
-            messageElement += `<img class="chat-msg-img" src="${users[sender].profileImage}" alt="" />`
+            chatProfileImgDiv.className = 'chat-msg-img';
+            chatMessageProfileDiv.innerHTML = `<img class="chat-msg-img" src="${users[sender].profileImage}" alt="" />`;
         }
+        chatMessageProfileDiv.appendChild(chatProfileImgDiv);
     }
 
+    let chatMessageDateDiv = document.createElement('div');
+    chatMessageDateDiv.className = 'chat-msg-date';
+    chatMessageDateDiv.textContent = `Mensagem enviada ${timestamp}`;
+    chatMessageProfileDiv.appendChild(chatMessageDateDiv);
 
-    messageElement += `
-                <div class="chat-msg-date">Mensagem enviada ${timestamp}</div>
-            </div>
-            <div class="chat-msg-content">
-                <div class="chat-msg-text">`
-    if (!isMessageOwner){
-        messageElement += `<div class="chat-msg-username" style="color: ${users[sender]['color']}">${users[sender].displayName}</div>`
+    newDiv.appendChild(chatMessageProfileDiv);
+
+    let chatMessageTextDiv = document.createElement('div');
+    chatMessageTextDiv.className = 'chat-msg-text';
+
+    if(file_uuid !== null){
+        chatMessageTextDiv.textContent = `<a href="/api/get_file/${file_uuid}" class="download-link">${messageContent}</a>`;
+    } else {
+        chatMessageTextDiv.textContent = messageContent;
     }
-    messageElement +=
-    `${messageContent}</div>
-            </div>
-        </div>
-        `;
-    return messageElement;
+
+    let chatMessageContentDiv = document.createElement('div');
+    chatMessageContentDiv.className = 'chat-msg-content';
+
+    chatMessageContentDiv.appendChild(chatMessageTextDiv);
+
+    newDiv.appendChild(chatMessageContentDiv);
+
+    return newDiv.outerHTML;
 }
 
 function handleUserClick(div, username, displayName) {
@@ -528,12 +549,15 @@ function handleUserClick(div, username, displayName) {
     lastSelectedUserDiv = div;
 
     document.dispatchEvent(new CustomEvent('privateChatStarted', { detail: { otherUser: username } }));
-    hideDetails();
 
     if (logoElement.onclick != null) {
         toggleMenuConversa();
     }
-    chatAreaMainDiv.lastElementChild.scrollIntoView({behavior: 'smooth'});
+
+    let lastElement = chatAreaMainDiv.lastElementChild;
+    if (lastElement) {
+        chatAreaMainDiv.lastElementChild.scrollIntoView({behavior: 'smooth'});
+    }
 }
 
 function saveCurrentChatState(keyValue, chatAreaMainDiv, inputText) {
@@ -587,7 +611,7 @@ function createGroupDiv(menuConversas, group, group_id, currentUser) {
 
     div.addEventListener('click', () => {
         document.getElementById('hallEntrada').style.display = 'none';
-        handleGroupClick(div, group, group_id, currentUser);
+        handleGroupClick(div, group_id, currentUser);
         document.getElementById('chatArea').style.display = 'flex';
     });
 
@@ -597,17 +621,18 @@ function updateGroupConversations(menuConversas, conversas, data, currentUser) {
     for (let group_id in data) {
         let group = data[group_id];
         let groupDiv = getChatDiv(conversas, group_id, 'group');
-        if (!group_id in groups){
-            groups[group_id] = group;
-        }
         groups[group_id] = group;
 
         if (groupDiv) {
             groups[group_id] = group;
-            if (lastSelectedGroupDiv === groupDiv && detailsIsOpened()){
+
+            if (lastSelectedGroupDiv === groupDiv && detailsIsOpened() && lastSelectedGroupDiv.dataset.group == group_id){
                 showGroupDetails(group_id);
-                showEntryRequests(group_id);
+                showEntryRequests(group_id, true);
             }
+            let actionButtonsDiv = groupDiv.querySelector('.group-action-buttons');
+                actionButtonsDiv.innerHTML = '';
+
         } else {
             createGroupDiv(menuConversas, group, group_id, currentUser);
         }
@@ -626,9 +651,9 @@ function initializeGroupChatStates(group_id, group) {
 }
 
 
-function handleGroupClick(div, group, group_id, currentUser) {
+function handleGroupClick(div, group_id, currentUser) {
     hideDetails();
-
+    let group = groups[group_id];
     let chatAreaMainDiv = document.querySelector('.chat-area-main');
     let inputText = document.getElementById('inputText');
 
@@ -673,7 +698,10 @@ function handleGroupClick(div, group, group_id, currentUser) {
         toggleMenuConversa();
     }
 
-    chatAreaMainDiv.lastElementChild.scrollIntoView({behavior: 'smooth'});
+    let lastElement = chatAreaMainDiv.lastElementChild;
+    if (lastElement) {
+        chatAreaMainDiv.lastElementChild.scrollIntoView({behavior: 'smooth'});
+    }
     document.dispatchEvent(new CustomEvent('groupChatStarted', { detail: { groupName: group.name } }));
 }
 
@@ -708,7 +736,6 @@ function requestGroupEntry(groupId, currentUser) {
 function showEntryRequests(group_id, justUpdate=false) {
     toogleGroupEntrada(group_id, justUpdate);
 
-    let requests = groups[group_id].requests;
     // Adiciona eventos de aceitar e recusar pedidos de entrada
     const entryRequests = document.getElementById('detail-pedidos-group').querySelectorAll('.contact');
     entryRequests.forEach(requestDiv => {
@@ -825,7 +852,8 @@ function leaveGroup(group_id) {
             if (data.status === 'success') {
                 alert('Você saiu do grupo com sucesso.');
                 hideDetails();
-                document.getElementById('conversas-grupos').removeChild(lastSelectedGroupDiv);
+                lastSelectedGroupDiv.remove();
+                lastSelectedGroupDiv = null;
             } else {
                 alert(data.message);
             }
@@ -847,6 +875,9 @@ function showUserDetails(username){
     let subtitleElement = detailArea.querySelector('#detail-pessoal-username');
     subtitleElement.textContent = `${username}`;
 
+    let recadoElement = detailArea.querySelector('#detail-recado');
+    recadoElement.textContent = user.status;
+
     let imgProfileGroup = document.getElementById('detail-pessoal-icon');
     imgProfileGroup.src = getProfileImageURL(user);
 
@@ -867,13 +898,19 @@ function acceptRequest(groupId, username) {
         .then(response => response.json())
         .then(data => {
             if (data.status !== 'success') {
+                let groups = data.groups;
                 alert(data.message);
+            }
+            if (data.groups) {
+                console.log("Group from response:", data.group);
+                updateConversationMenu('conversas-grupos', data.groups, currentUser, socket);
             }
         })
         .catch(error => {
             console.error('Erro ao aceitar pedido:', error);
             alert('Erro ao aceitar pedido. Verifique o console para mais detalhes.');
-        });
+            return null;
+        })
 }
 
 // Função para recusar pedido de entrada no grupo
@@ -959,7 +996,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const file = event.target.files[0];
         if (file) {
             console.log('File selected:', file.name);
-
+            let messageType = currentConversationType;
             // Enviar o arquivo para o servidor via AJAX (usando Fetch API)
             const formData = new FormData();
             formData.append('file', file);
@@ -970,8 +1007,12 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => response.json())
             .then(data => {
-                console.log('File uploaded successfully:', data.filename);
-                sendMessage('data.filename', data.filename);
+                if (messageType === 'user'){
+                    sendMessage(data.filename, data.file_uuid);
+                } else if (messageType === 'group'){
+                    sendGroupMessage(data.filename, data.file_uuid);
+                }
+
             })
             .catch(error => {
                 console.error('Error uploading file:', error);
@@ -986,7 +1027,7 @@ function updateGroupRequests(data){
     let user = users[request_username];
 
     groups[group_id]['requests'].push(request_username);
-    if (lastSelectedGroupDiv && currentConversationType === 'group'){
+    if (lastSelectedGroupDiv && currentConversationType === 'group' && lastSelectedGroupDiv.dataset.group === group_id){
         const requestDiv = document.createElement('div');
             requestDiv.classList.add('contact');
             requestDiv.innerHTML = `
