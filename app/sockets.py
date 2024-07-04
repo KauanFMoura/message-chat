@@ -55,6 +55,7 @@ def handle_message(data):
     receiver = data['receiver']
     message = data['message']
     timestamp = data['timestamp']
+    uuid = data['uuid']
     sid_receiver = connected_users.get(receiver, {}).get('sid')
 
     if receiver in connected_users.keys():
@@ -72,7 +73,7 @@ def handle_message(data):
 
     print(f'{sender} sent a private message to {receiver}')
     # Registrando mensagem no banco de dados
-    services.register_private_message(sender_id, receiver_id, message, timestamp, None)
+    services.register_private_message(sender_id, receiver_id, message, timestamp, uuid)
 
 
 @socketio.on('group_message')
@@ -80,7 +81,7 @@ def handle_group_message(data):
     sender = data['sender']
     group_id = int(data['group_id'])
     message = data['message']
-    timestamp = data['time_sent']
+    time_sent = data['time_sent']
 
     # Verifica se o grupo já existe
     if group_id not in group_rooms.keys():
@@ -93,13 +94,12 @@ def handle_group_message(data):
 
     room_list = [connected_users[user]['sid'] for user in group_rooms[group_id] if user != sender]
 
-    message_data = {'sender': sender, 'message': message, 'group_id': group_id, "timestamp": timestamp}
     # Se a lista não estiver vazia, emito a mensagem (é necessário, pois se a lista está vazia, o Flask envia a mensagem para o sender)
     if room_list:
-        emit('group_message', message_data, room=room_list)
+        emit('group_message', {'sender': sender, 'message': message, 'group_id': group_id, "time_sent": time_sent},
+             room=room_list)
 
     # Emite a mensagem para o grupo
-    print(message_data)
     print(f'{sender} sent a group message to {group_id}')
 
     # Tentar pegar o ID com base nos usuarios conectados
@@ -109,4 +109,4 @@ def handle_group_message(data):
         # Se não conseguir, pega o ID do banco
         sender_id = services.get_user_by_username(sender).usu_id
 
-    services.register_group_message(group_id, sender_id, message, timestamp, None)
+    services.register_group_message(group_id, sender_id, message, time_sent, None)

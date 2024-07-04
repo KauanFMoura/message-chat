@@ -21,8 +21,8 @@ USE `whatsut` ;
 -- Table `whatsut`.`file`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `whatsut`.`file` (
-  `file_uuid` VARCHAR(40) NOT NULL,
-  `file_name` VARCHAR(100) NOT NULL,
+  `file_uuid` VARCHAR(255) NOT NULL,
+  `file_name` VARCHAR(255) NOT NULL,
   `file_ext` VARCHAR(10) NOT NULL,
   PRIMARY KEY (`file_uuid`))
 ENGINE = InnoDB;
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS `whatsut`.`private_message` (
   `pv_receiver_id` INT NOT NULL,
   `pv_message` VARCHAR(500) NOT NULL,
   `pv_datetime` DATETIME NOT NULL,
-  `pv_file_uuid` VARCHAR(40) NULL,
+  `pv_file_uuid` VARCHAR(255) NULL,
   PRIMARY KEY (`pv_id`),
   INDEX `pv_user1_idx` (`pv_sender_id` ASC) VISIBLE,
   INDEX `pv_user2_idx` (`pv_receiver_id` ASC) VISIBLE,
