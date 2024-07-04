@@ -296,22 +296,33 @@
         });
 
         let messageClass = 'chat-msg owner';
-        if (uuid !== null){
-            const messageElement = `
+        let messageElement;
+        if (uuid === null){
+            messageElement = `
                 <div class="${messageClass}">
                     <div class="chat-msg-profile">
-                        <img class="chat-msg-img" src="icone_usuario.png" alt="" />
                         <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
                     </div>
-                    <div class="chat-msg-user">Nome do Usuário</div>
                     <div class="chat-msg-content">
                         <div class="chat-msg-text">${message}</div>
                     </div>
                 </div>
             `;
         }else{
-
+            messageElement = `
+            <div class="${messageClass}">
+                <div class="chat-msg-profile">
+                    <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
+                </div>
+                <div class="chat-msg-content">
+                    <div class="chat-msg-text">
+                        <a href="/api/get_file/${uuid}" class="download-link">Clique aqui para baixar o arquivo</a>
+                    </div>
+                </div>
+            </div>
+            `;
         }
+
 
         // Adiciona a mensagem ao chat atual
         let chatTarget = document.querySelector('.chat-area-main');
@@ -333,13 +344,13 @@
             sender: currentUser,
             receiver: lastSelectedUser,
             message: message,
-            time_sent: currentDateTime,
+            time_sent: currentTime,
             uuid: uuid
         });
         let messageClass = 'chat-msg owner';
-
-        if (uuid !== null){
-            const messageElement = `
+        let messageElement;
+        if (uuid === null){
+            messageElement = `
                 <div class="${messageClass}">
                     <div class="chat-msg-profile">
                         <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
@@ -350,13 +361,11 @@
                 </div>
             `;
         }else{
-            const downloadElement = `
+            messageElement = `
             <div class="${messageClass}">
                 <div class="chat-msg-profile">
-                    <img class="chat-msg-img" src="${users[sender].profileImage}" alt="" />
-                    <div class="chat-msg-date">Mensagem enviada ${time_sent}</div>
+                    <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
                 </div>
-                <div class="chat-msg-user">Nome do Usuário</div>
                 <div class="chat-msg-content">
                     <div class="chat-msg-text">
                         <a href="/api/get_file/${uuid}" class="download-link">Clique aqui para baixar o arquivo</a>
@@ -421,23 +430,33 @@
         if (sender === currentChatTarget) {
             messageClass += ' owner';
         }
-
-        if (uuid !== null){
-            const messageElement = `
+        let messageElement;
+        if (uuid === null){
+            messageElement = `
+                <div class="${messageClass}">
+                    <div class="chat-msg-profile">
+                        <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
+                    </div>
+                    <div class="chat-msg-content">
+                        <div class="chat-msg-text">${message}</div>
+                    </div>
+                </div>
+            `;
+        }else{
+            messageElement = `
             <div class="${messageClass}">
                 <div class="chat-msg-profile">
-                    <img class="chat-msg-img" src="${users[sender].profileImage}" alt="" />
-                    <div class="chat-msg-date">Mensagem enviada ${time_sent}</div>
+                    <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
                 </div>
-                <div class="chat-msg-user">Nome do Usuário</div>
                 <div class="chat-msg-content">
-                    <div class="chat-msg-text">${message}</div>
+                    <div class="chat-msg-text">
+                        <a href="/api/get_file/${uuid}" class="download-link">Clique aqui para baixar o arquivo</a>
+                    </div>
                 </div>
             </div>
             `;
-        }else{
-
         }
+
 
         // Atualiza o estado do chat atual
         if (!groups[group_id]['chatState']) {
@@ -467,12 +486,12 @@
         let uuid = data.uuid
         const time_sent = data.time_sent
         let messageClass = 'chat-msg';
-
-        if (uuid !== null){
-            const messageElement = `
+        let messageElement;
+        if (uuid === null){
+            messageElement = `
                 <div class="${messageClass}">
                     <div class="chat-msg-profile">
-                        <div class="chat-msg-date">Message seen ${time_sent}</div>
+                        <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
                     </div>
                     <div class="chat-msg-content">
                         <div class="chat-msg-text">${message}</div>
@@ -480,8 +499,20 @@
                 </div>
             `;
         }else{
-
+            messageElement = `
+            <div class="${messageClass}">
+                <div class="chat-msg-profile">
+                    <div class="chat-msg-date">Mensagem enviada ${currentTime}</div>
+                </div>
+                <div class="chat-msg-content">
+                    <div class="chat-msg-text">
+                        <a href="/api/get_file/${uuid}" class="download-link">Clique aqui para baixar o arquivo</a>
+                    </div>
+                </div>
+            </div>
+            `;
         }
+
 
 
         if (!users[sender]['chatState']) {

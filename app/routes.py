@@ -430,12 +430,7 @@ def get_file(uuid):
     if not file:
         return jsonify({'error': 'Arquivo não encontrado'}), 404
 
-    send_filename = file.file_name + file.file_ext
-    server_file_path = os.path.join(app.config['UPLOAD_FOLDER'], file.file_uuid + file.file_ext)
-
-    return send_file(server_file_path,
-                     as_attachment=True,
-                     attachment_filename=send_filename)
+    return send_file(file, as_attachment=True, download_name=file.file_name)
 
 
 @app.route('/api/request_group_entry', methods=['POST'])
