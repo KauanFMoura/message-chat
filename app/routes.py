@@ -30,7 +30,7 @@ def login():
                                           filename=f'{user.profile_image.file_uuid + user.profile_image.file_ext}',
                                           _external=True)
             else:
-                profileImageURL = app.config['DEFAULT_PROFILE_IMAGE']
+                profileImageURL = None
 
             ghus = services.get_user_groups(user.usu_id)
             groups = [ghu.ghu_group_id for ghu in ghus]
@@ -73,7 +73,7 @@ def register():
         connected_users[username] = {
             "id": user.usu_id,
             "displayName": user.usu_displayname,
-            "profileImage": app.config['DEFAULT_PROFILE_IMAGE'],
+            "profileImage": None,
             "status": user.usu_status,
             "online": True,
             "groups": []
@@ -102,7 +102,7 @@ def chat():
         if username not in connected_users.keys():
             connected_users[username] = user
 
-        return render_template('whats.html', user=user, username=username)
+        return render_template('whats.html', user=user, username=username, defaultGroupImage=app.config['DEFAULT_GROUP_IMAGE'], defaultProfileImage=app.config['DEFAULT_PROFILE_IMAGE'])
     except Exception as e:
         return redirect(url_for('index'))
 
@@ -220,7 +220,7 @@ def get_people(server_request=False):
                                       filename=f'{user.profile_image.file_uuid}{user.profile_image.file_ext}',
                                       _external=True)
         else:
-            profileImageURL = app.config['DEFAULT_PROFILE_IMAGE']
+            profileImageURL = None
 
         messages = services.get_user_private_messages(user.usu_id, username_session)
 
@@ -279,6 +279,7 @@ def get_groups(server_request=False):
                 groups[group_id]['users'].append(user['member_username'])
             elif user['member_username'] not in groups[group_id]['requests']:
                 groups[group_id]['requests'].append(user['member_username'])
+
     if server_request:
         return groups
     return jsonify(groups), 200

@@ -407,6 +407,7 @@ html {
     margin: 0 0 10px 5px;
     border-bottom: solid 2px var(--border-color);
     justify-content: space-between;
+    background-color: var(--theme-bg-color);
 }
 
 .chat-header-contact-profile {
@@ -471,6 +472,19 @@ html {
     object-fit: cover;
 }
 
+.user-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #4CAF50; /* Cor de fundo do ícone */
+    color: #FFFFFF; /* Cor do texto (iniciais) */
+    font-size: 20px; /* Tamanho do texto */
+    font-weight: bold; /* Negrito para melhor visibilidade */
+}
+
 .chat-msg-profile {
     flex-shrink: 0;
     margin-top: auto;
@@ -495,7 +509,6 @@ html {
 .chat-msg-user {
     font-size: 14px;
     font-weight: bold;
-    margin-bottom: 5px;
     color: #333; /* Mude a cor conforme necessário */
 }
 .chat-msg-content {
@@ -523,7 +536,7 @@ html {
 .owner {
     flex-direction: row-reverse;
 }
-.owner .chat-msg-content {
+.owner .chat-msg-text .owner {
     margin-left: 0;
     margin-right: 12px;
     align-items: flex-end;
@@ -803,6 +816,10 @@ html {
 .dark-mode .dark-light svg {
     fill: #ffce45;
     stroke: #ffce45;
+}
+
+.dark-mode .chat-msg-user {
+    color: #b5b7ba;
 }
 
 .chat-area-group {

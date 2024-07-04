@@ -69,50 +69,53 @@ def add_user_to_group(ghu_group_id, ghu_user_id, ghu_is_admin, ghu_entry_date):
 
 
 def get_user_group_messages(user_id):
-    # Subconsulta para obter o ID da mensagem mais recente por grupo
-    subquery = (
-        db.session.query(
-            GroupMessage.gm_group_id,
-            func.max(GroupMessage.gm_datetime).label('max_datetime')
-        )
-        .join(GroupHasUser, GroupHasUser.ghu_group_id == GroupMessage.gm_group_id)
+    # Subconsulta para obter todos os grupos dos quais o usuário participa e a solicitação foi aceita
+    user_groups_subquery = (
+        db.session.query(GroupHasUser.ghu_group_id)
         .filter(GroupHasUser.ghu_user_id == user_id)
         .filter(GroupHasUser.ghu_accepted_request == True)
-        .group_by(GroupMessage.gm_group_id)
         .subquery()
     )
 
-    # Subconsulta para obter os IDs das mensagens mais recentes por grupo
-    recent_messages_subquery = (
-        db.session.query(GroupMessage.gm_id, GroupMessage.gm_group_id)
-        .join(subquery, (GroupMessage.gm_group_id == subquery.c.gm_group_id) &
-              (GroupMessage.gm_datetime == subquery.c.max_datetime))
-        .subquery()
-    )
-
-    # Consulta principal para obter as mensagens com as informações adicionais
-    messages = (
+    # Subconsulta para obter até 50 mensagens mais recentes por grupo
+    group_messages_subquery = (
         db.session.query(
-            GroupMessage,
-            User.usu_username.label('sender_username')
+            GroupMessage.gm_id,
+            GroupMessage.gm_group_id,
+            GroupMessage.gm_message,
+            GroupMessage.gm_datetime,
+            GroupMessage.gm_file_uuid,
+            GroupMessage.gm_sender_id,
+            User.usu_username.label('sender_username'),
+            func.row_number().over(
+                partition_by=GroupMessage.gm_group_id,
+                order_by=desc(GroupMessage.gm_datetime)
+            ).label('row_num')
         )
-        .join(recent_messages_subquery, GroupMessage.gm_id == recent_messages_subquery.c.gm_id)
+        .join(user_groups_subquery, GroupMessage.gm_group_id == user_groups_subquery.c.ghu_group_id)
         .join(User, User.usu_id == GroupMessage.gm_sender_id)
-        .order_by(GroupMessage.gm_group_id, desc(GroupMessage.gm_datetime))  # Ordena por grupo e datetime decrescente
+        .subquery()
+    )
+
+    # Consulta principal para obter até 50 mensagens por grupo
+    messages = (
+        db.session.query(group_messages_subquery)
+        .filter(group_messages_subquery.c.row_num <= 50)
+        .order_by(group_messages_subquery.c.gm_group_id, desc(group_messages_subquery.c.gm_datetime))
         .all()
     )
 
     # Formatar os resultados como uma lista de dicionários
     result = {}
-    for message, sender_username in messages:
+    for message in messages:
         if message.gm_group_id not in result:
             result[message.gm_group_id] = []
 
         result[message.gm_group_id].append({
             'message': message.gm_message,
-            'datetime': message.gm_datetime,
+            'timestamp': message.gm_datetime,
             'file_uuid': message.gm_file_uuid,
-            'username': sender_username
+            'sender': message.sender_username
         })
 
     return result
