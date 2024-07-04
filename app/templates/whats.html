@@ -368,7 +368,7 @@
     });
 
     // Função para enviar mensagem de grupo ao servidor
-    const sendGroupMessage = (message, file_uuid=null) => {
+    function sendGroupMessage (message, file_uuid=null) {
         let currentTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
         let messageData = {
             sender: currentUser,
@@ -393,10 +393,10 @@
         }
         groups[currentChatTarget]['chatState']['chat-area-main'] = chatTarget.innerHTML;
         
-    };
+    }
 
     // Função para enviar mensagem ao servidor
-    const sendMessage = (message, file_uuid=null) => {
+    function sendMessage (message, file_uuid=null) {
         let currentTime = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
         let messageData = {
@@ -427,7 +427,7 @@
             users[lastSelectedUser]['chatState'] = {'chat-area-main': '', 'inputText': ''};
         }
         users[lastSelectedUser]['chatState']['chat-area-main'] = chatTarget.innerHTML;
-    };
+    }
 
 
     // Evento de envio de mensagem ao pressionar Enter

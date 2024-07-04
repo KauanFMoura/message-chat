@@ -129,4 +129,4 @@ def handle_group_message(data):
         # Se não conseguir, pega o ID do banco
         sender_id = services.get_user_by_username(sender).usu_id
 
-    services.register_group_message(group_id, sender_id, message, timestamp, None)
+    services.register_group_message(group_id, sender_id, message, timestamp, uuid)

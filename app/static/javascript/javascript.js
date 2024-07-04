@@ -426,7 +426,7 @@ function createMessageElement(message, username) {
     let file_uuid = message.file_uuid;
 
     let messageClass = 'chat-msg';
-    let isMessageOwner = sender === username;
+    let isMessageOwner = sender === currentUser;
 
     if (isMessageOwner) {
         messageClass += ' owner';
@@ -475,7 +475,7 @@ function createGroupMessageElement(message, username) {
     let file_uuid = message.file_uuid;
 
     let messageClass = 'chat-msg';
-    let isMessageOwner = sender === username;
+    let isMessageOwner = sender === currentUser;
 
     if (isMessageOwner) {
         messageClass += ' owner';
