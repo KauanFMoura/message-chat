@@ -16,9 +16,13 @@ function toggleButton() {
 }
 
 function mudouTamanho() {
-    let menu = document.getElementById('menu-conversas');
-    let detailArea = document.getElementById('detail-area');
-    let menuContato = document.getElementById('menu-contact');
+
+    var menu = document.getElementById('menu-conversas');
+    var logo = document.getElementById('logo');
+    var detailArea = document.getElementById('detail-area');
+    var detailAreaPessoal = document.getElementById('detail-area-pessoal');
+    var menuContato = document.getElementById('menu-contact');
+
 
     if (window.innerWidth >= 780) {
         menu.style.display = 'block';
@@ -28,6 +32,7 @@ function mudouTamanho() {
         menu.style.display = 'none';
         logoElement.onclick = toggleMenuConversa; // Adiciona a função onclick
         detailArea.style.display = 'none';
+        detailAreaPessoal.style.display = 'none';
         menuContato.style.display = 'none';
     } else if (window.innerWidth >= 1120) {
         detailArea.style.display = 'flex';
@@ -41,6 +46,7 @@ function toggleMenuConversa() {
         menu.style.display = 'none';
     } else {
         menu.style.display = 'block';
+        document.getElementById('hallEntrada').style.display = 'none';
     }
 }
 
@@ -246,22 +252,42 @@ function getRandomHexColor() {
 
 function showDetails(type, keyValue) {
     var detailArea = document.getElementById('detail-area');
+    var detailAreaPessoal = document.getElementById('detail-area-pessoal');
+    var detailAreaUsuario = document.getElementById('detail-area-usuario');
 
-     if (detailArea.style.display === 'flex') {
+    if (detailArea.style.display === 'flex' || detailAreaPessoal.style.display === 'flex' || detailAreaUsuario.style.display === 'flex') {
         detailArea.style.display = 'none';
+        detailAreaPessoal.style.display = 'none';
+        detailAreaUsuario.style.display = 'none';
     } else {
         if (type === 'group'){
             showGroupDetails(keyValue);
+            detailArea.style.display = 'flex';
+            detailAreaPessoal.style.display = 'none';
+            detailAreaUsuario.style.display = 'none';
         } else if(type === 'user'){
             showUserDetails(keyValue);
+            detailAreaPessoal.style.display = 'flex';
+            detailArea.style.display = 'none';
+            detailAreaUsuario.style.display = 'none';
         }
-
-        detailArea.style.display = 'flex';
     }
-
-
 }
-
+// Evento show detalhes pessoal
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelector('#config').addEventListener('click', function() {
+        var detailAreaUsuario = document.getElementById('detail-area-usuario');
+        var detailArea = document.getElementById('detail-area');
+        var detailAreaPessoal = document.getElementById('detail-area-pessoal');
+        if (detailAreaUsuario.style.display === 'none' || detailArea.style.display === '') {
+            detailAreaUsuario.style.display = 'flex';
+            detailAreaPessoal.style.display = 'none';
+            detailArea.style.display = 'none';
+        } else {
+            detailAreaUsuario.style.display = 'none';
+        }
+    });
+});
 
 // Função auxiliar para verificar se um usuário já está na lista de pedidos de entrada
 function isUserAlreadyInList(container, username) {
@@ -340,6 +366,7 @@ function updateUserConversations(menuConversas, conversas, data, currentUser, of
         let usuarioDiv = getChatDiv(conversas, username, 'user');
         if (usuarioDiv && usuarioDiv.classList.contains('online')) {
             usuarioDiv.classList.remove('online');
+            document.getElementById('chat-header-contact-profile').classList.remove('online');
         }
     });
 
@@ -349,8 +376,12 @@ function updateUserConversations(menuConversas, conversas, data, currentUser, of
 function updateOnlineStatus(usuarioDiv, user) {
     if (user.online) {
         usuarioDiv.classList.add('online');
+        document.getElementById('chat-header-contact-profile').classList.add('online');
+        document.getElementById('status-title').textContent = 'Online';
     } else {
         usuarioDiv.classList.remove('online');
+        document.getElementById('chat-header-contact-profile').classList.remove('online');
+        document.getElementById('status-title').display = 'none';
     }
 }
 
@@ -373,7 +404,7 @@ function createUserDiv(menuConversas, user, username, currentUser) {
     div.addEventListener('click', () => {
         document.getElementById('hallEntrada').style.display = 'none';
         handleUserClick(div, username, user.displayName);
-
+        document.getElementById('chatArea').style.display = 'flex';
     });
 }
 
@@ -557,6 +588,7 @@ function createGroupDiv(menuConversas, group, group_id, currentUser) {
     div.addEventListener('click', () => {
         document.getElementById('hallEntrada').style.display = 'none';
         handleGroupClick(div, group, group_id, currentUser);
+        document.getElementById('chatArea').style.display = 'flex';
     });
 
 }
@@ -613,7 +645,11 @@ function handleGroupClick(div, group, group_id, currentUser) {
     restoreChatState(group_id, chatAreaMainDiv, inputText);
 
     document.getElementById('chat-area-title').innerText = group.name;
+
     document.getElementById('chat-user-image').src = getProfileImageURL(group);
+    document.getElementById('chat-header-contact-profile').classList.remove('online');
+    document.getElementById('status-title').textContent = '';
+
 
     lastSelectedGroupDiv = div;
     div.classList.add('active');
@@ -802,17 +838,18 @@ function leaveGroup(group_id) {
 
 function showUserDetails(username){
     let user = users[username];
-    let detailArea = document.getElementById('detail-area');
+    let detailArea = document.getElementById('detail-area-pessoal');
 
     // Atualiza os detalhes do grupo
-    let titleElement = detailArea.querySelector('.detail-title');
+    let titleElement = detailArea.querySelector('#detail-pessoal-name');
     titleElement.textContent = user.displayName;
 
-    let subtitleElement = detailArea.querySelector('.detail-subtitle');
+    let subtitleElement = detailArea.querySelector('#detail-pessoal-username');
     subtitleElement.textContent = `${username}`;
 
-    let imgProfileGroup = document.getElementById('detail-group-icon');
+    let imgProfileGroup = document.getElementById('detail-pessoal-icon');
     imgProfileGroup.src = getProfileImageURL(user);
+
 }
 
 // Função para aceitar pedido de entrada no grupo
@@ -972,4 +1009,111 @@ function updateGroupRequests(data){
         document.getElementById('detail-pedidos-group').appendChild(requestDiv);
     }
 }
+
+
+// Evento para editar imagem de perfil
+document.addEventListener('DOMContentLoaded', function () {
+    const uploadImage = document.getElementById('edit-upload-image');
+    const image = document.getElementById('image');
+    const cropper = new Cropper(image, {
+        aspectRatio: 1 / 1, // Define a proporção de aspecto desejada (opcional)
+        viewMode: 1,        // Define o modo de visualização (opcional)
+    });
+
+    document.getElementById('edit-perfil-image').addEventListener('click', function () {
+        document.getElementById('edit-upload-image').click();
+    });
+
+    uploadImage.addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                image.src = e.target.result;
+                image.style.display = 'block';
+                document.getElementById('overlay-edit').style.display = 'flex'; // Mostra o overlay
+                cropper.replace(e.target.result); // Define a imagem no Cropper.js
+                document.getElementById('crop-button').style.display = 'block'; // Mostra botão de salvar
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.getElementById('crop-button').addEventListener('click', function () {
+        // Obtenha o recorte da imagem
+        const canvas = cropper.getCroppedCanvas({
+            maxWidth: 300,
+            maxHeight: 300,
+        });
+
+        if (canvas) {
+            canvas.toBlob(function (blob) {
+                // Aqui você pode enviar o blob para o servidor ou fazer o que for necessário
+                const formData = new FormData();
+                formData.append('croppedImage', blob, 'cropped_image.png');
+
+                // Armazena a URL da imagem cortada no campo oculto
+                const croppedImageURL = canvas.toDataURL(); // Obtém a URL da imagem cortada em formato base64
+                document.getElementById('cropped-image-url').value = croppedImageURL;
+
+                // Esconde o Cropper e o overlay após salvar
+                document.getElementById('overlay-edit').style.display = 'none';
+                image.style.display = 'none';
+                document.getElementById('crop-button').style.display = 'none';
+            });
+        }
+    });
+});
+document.addEventListener('DOMContentLoaded', function () {
+    const uploadImage = document.getElementById('edit-upload-image-usu');
+    const image = document.getElementById('image');
+    const cropper = new Cropper(image, {
+        aspectRatio: 1 / 1, // Define a proporção de aspecto desejada (opcional)
+        viewMode: 1,        // Define o modo de visualização (opcional)
+    });
+
+    document.getElementById('edit-perfil-image-usu').addEventListener('click', function () {
+        document.getElementById('edit-upload-image-usu').click();
+    });
+
+    uploadImage.addEventListener('change', function (event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                image.src = e.target.result;
+                image.style.display = 'block';
+                document.getElementById('overlay-edit').style.display = 'flex'; // Mostra o overlay
+                cropper.replace(e.target.result); // Define a imagem no Cropper.js
+                document.getElementById('crop-button').style.display = 'block'; // Mostra botão de salvar
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.getElementById('crop-button').addEventListener('click', function () {
+        // Obtenha o recorte da imagem
+        const canvas = cropper.getCroppedCanvas({
+            maxWidth: 300,
+            maxHeight: 300,
+        });
+
+        if (canvas) {
+            canvas.toBlob(function (blob) {
+                // Aqui você pode enviar o blob para o servidor ou fazer o que for necessário
+                const formData = new FormData();
+                formData.append('croppedImage', blob, 'cropped_image.png');
+
+                // Armazena a URL da imagem cortada no campo oculto
+                const croppedImageURL = canvas.toDataURL(); // Obtém a URL da imagem cortada em formato base64
+                document.getElementById('cropped-image-url').value = croppedImageURL;
+
+                // Esconde o Cropper e o overlay após salvar
+                document.getElementById('overlay-edit').style.display = 'none';
+                image.style.display = 'none';
+                document.getElementById('crop-button').style.display = 'none';
+            });
+        }
+    });
+});
 
